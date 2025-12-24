@@ -1,0 +1,8 @@
+{
+  "name": "Pomorix - Global Study Hall",
+  "description": "A productivity-focused Pomodoro application with a global study hall, achievement tracking, and deep analytics inspired by minimalist developer aesthetics.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

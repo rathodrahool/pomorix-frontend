@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomorix - Global Study Hall</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Noto+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff6600",
+                        "primary-dark": "#cc5200",
+                        "bg-page": "#f6f6ef",
+                        "surface": "#ffffff",
+                        "text-main": "#111111",
+                        "text-secondary": "#828282",
+                        "border-subtle": "#e5e5e5",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    boxShadow: {
+                        'sharp': '3px 3px 0px 0px rgba(0,0,0,0.1)',
+                        'sharp-hover': '5px 5px 0px 0px rgba(0,0,0,0.15)',
+                    }
+                },
+                borderRadius: {
+                    'none': '0',
+                    'sm': '0',
+                    DEFAULT: '0',
+                    'md': '0',
+                    'lg': '0',
+                    'xl': '0',
+                    '2xl': '0',
+                    '3xl': '0',
+                    'full': '0',
+                },
+            },
+        }
+    </script>
+    <style>
+        * { border-radius: 0 !important; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d1d1; }
+        ::-webkit-scrollbar-thumb:hover { background: #999; }
+        
+        .timer-glow {
+            text-shadow: 0 0 20px rgba(255, 102, 0, 0.1);
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-bg-page font-body text-text-main antialiased min-h-screen">
+    <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+
+import React from 'react';
+import { Outlet, Link, useLocation } from 'react-router-dom';
+
+const Header: React.FC = () => {
+  const location = useLocation();
+
+  return (
+    <header className="sticky top-0 z-50 flex items-center justify-between border-b border-primary-dark bg-primary px-4 py-3 lg:px-10 shadow-sm">
+      <div className="flex items-center gap-3">
+        <Link to="/" className="flex items-center justify-center size-8 bg-white text-primary border border-white">
+          <span className="material-symbols-outlined !text-[24px]">check</span>
+        </Link>
+        <Link to="/" className="text-white text-xl font-bold tracking-tight font-display hover:opacity-90">Pomorix</Link>
+      </div>
+
+      <nav className="hidden md:flex items-center gap-8 ml-12">
+        <Link to="/" className={`text-sm font-medium transition-colors ${location.pathname === '/' ? 'text-white border-b-2 border-white pb-0.5' : 'text-white/70 hover:text-white'}`}>Timer</Link>
+        <Link to="/profile" className={`text-sm font-medium transition-colors ${location.pathname === '/profile' ? 'text-white border-b-2 border-white pb-0.5' : 'text-white/70 hover:text-white'}`}>Profile</Link>
+        <Link to="/settings" className={`text-sm font-medium transition-colors ${location.pathname === '/settings' ? 'text-white border-b-2 border-white pb-0.5' : 'text-white/70 hover:text-white'}`}>Settings</Link>
+      </nav>
+
+      <div className="flex items-center gap-6">
+        <div className="hidden sm:block bg-white/10 hover:bg-white/20 transition-colors px-3 py-1 text-white text-sm font-bold border border-white/20 cursor-pointer">
+          🔥 12 Day Streak
+        </div>
+        <Link to="/profile">
+          <div className="bg-center bg-no-repeat aspect-square bg-cover size-9 border border-white/50 cursor-pointer hover:opacity-90"
+            style={{ backgroundImage: 'url("https://picsum.photos/seed/user123/100/100")' }}></div>
+        </Link>
+      </div>
+    </header>
+  );
+};
+
+const Layout: React.FC = () => {
+  return (
+    <div className="min-h-screen flex flex-col bg-bg-page">
+      <Header />
+      <main className="flex-1">
+        <Outlet />
+      </main>
+      <footer className="w-full border-t border-primary/20 bg-bg-page py-4 px-6 text-center">
+        <div className="flex items-center justify-center gap-2 text-text-secondary text-sm font-display">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full bg-green-500 opacity-75"></span>
+            <span className="relative inline-flex h-2 w-2 bg-green-600"></span>
+          </span>
+          <span><strong className="text-text-main">1,240</strong> people are focusing right now.</span>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default Layout;
