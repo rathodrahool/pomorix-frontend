@@ -2,19 +2,20 @@
  * API Request and Response Types
  */
 
-// Generic API Response wrapper
+// Generic API Response wrapper (matches backend structure)
 export interface ApiResponse<T = any> {
     success: boolean;
+    status_code: number;
+    message: string;
     data: T;
-    message?: string;
 }
 
 // Generic Error Response
 export interface ApiError {
     success: false;
+    status_code: number;
     message: string;
-    errors?: Record<string, string[]>;
-    statusCode?: number;
+    data?: any;
 }
 
 // Pagination
