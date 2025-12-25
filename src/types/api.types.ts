@@ -58,7 +58,7 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-    token: string;
+    access_token: string;
     user: UserData;
 }
 
@@ -69,16 +69,19 @@ export interface RegisterRequest {
 }
 
 export interface RegisterResponse {
-    token: string;
+    access_token: string;
     user: UserData;
 }
 
 export interface UserData {
     id: string;
     email: string;
-    name: string;
+    name?: string;
     avatar?: string;
-    createdAt: string;
+    auth_provider?: string;
+    auth_provider_id?: string;
+    status?: string;
+    createdAt?: string;
 }
 
 // ==================== Task API Types ====================

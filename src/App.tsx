@@ -1,36 +1,45 @@
 
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { GoogleOAuthProvider } from '@react-oauth/google';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Layout from './components/Layout';
-import { API_CONFIG } from './constants/config';
+import { authService } from './services';
 
 const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Show login by default
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check if user is already authenticated on mount
+  useEffect(() => {
+    const isAuth = authService.isAuthenticated();
+    setIsAuthenticated(isAuth);
+  }, []);
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+  };
 
   return (
-    <GoogleOAuthProvider clientId={API_CONFIG.googleClientId}>
-      <HashRouter>
-        <Routes>
-          <Route path="/login" element={<Login onLogin={() => setIsAuthenticated(true)} />} />
+    <HashRouter>
+      <Routes>
+        <Route path="/login" element={
+          isAuthenticated ? <Navigate to="/" /> : <Login onLogin={handleLogin} />
+        } />
 
-          <Route
-            path="/"
-            element={isAuthenticated ? <Layout /> : <Navigate to="/login" />}
-          >
-            <Route index element={<Home />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
+        <Route
+          path="/"
+          element={isAuthenticated ? <Layout /> : <Navigate to="/login" />}
+        >
+          <Route index element={<Home />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
 
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </HashRouter>
-    </GoogleOAuthProvider>
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </HashRouter>
   );
 };
 

@@ -25,8 +25,8 @@ export const authService = {
         );
 
         // Store token in localStorage
-        if (response.data.data.token) {
-            storage.setToken(response.data.data.token);
+        if (response.data.data.access_token) {
+            storage.setToken(response.data.data.access_token);
             storage.setUserData(response.data.data.user);
         }
 
@@ -43,8 +43,8 @@ export const authService = {
         );
 
         // Store token in localStorage
-        if (response.data.data.token) {
-            storage.setToken(response.data.data.token);
+        if (response.data.data.access_token) {
+            storage.setToken(response.data.data.access_token);
             storage.setUserData(response.data.data.user);
         }
 
@@ -61,8 +61,8 @@ export const authService = {
         );
 
         // Store token in localStorage
-        if (response.data.data.token) {
-            storage.setToken(response.data.data.token);
+        if (response.data.data.access_token) {
+            storage.setToken(response.data.data.access_token);
             storage.setUserData(response.data.data.user);
         }
 
@@ -100,11 +100,11 @@ export const authService = {
      * Refresh authentication token
      */
     async refreshToken(): Promise<string> {
-        const response = await apiClient.post<ApiResponse<{ token: string }>>(
+        const response = await apiClient.post<ApiResponse<{ access_token: string }>>(
             API_ENDPOINTS.AUTH.REFRESH
         );
 
-        const newToken = response.data.data.token;
+        const newToken = response.data.data.access_token;
         storage.setToken(newToken);
 
         return newToken;

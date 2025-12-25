@@ -1,6 +1,4 @@
-
 import React from 'react';
-import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '../hooks';
 import { AuthProvider } from '../types';
 
@@ -8,55 +6,37 @@ interface LoginProps {
   onLogin: () => void;
 }
 
-// Helper function to decode JWT token
-function parseJwt(token: string) {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    return JSON.parse(jsonPayload);
-  } catch (error) {
-    console.error('Failed to parse JWT:', error);
-    return null;
-  }
-}
-
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const { socialLogin, loading, error } = useAuth();
 
-  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
-    if (!credentialResponse.credential) {
-      console.error('No credential received from Google');
-      return;
-    }
-
-    // Decode the JWT token to get user info
-    const userInfo = parseJwt(credentialResponse.credential);
-
-    if (!userInfo || !userInfo.email || !userInfo.sub) {
-      console.error('Invalid user info from Google');
-      return;
-    }
-
-    // Call the API with SigninDto structure
-    const success = await socialLogin({
-      email: userInfo.email,
+  // Static test credentials for Google
+  const handleGoogleLogin = async () => {
+    const staticGoogleData = {
+      email: "rahul@pomorix.com",
       auth_provider: AuthProvider.GOOGLE,
-      auth_provider_id: userInfo.sub,
-    });
+      auth_provider_id: "google-12345674589"
+    };
+
+    const success = await socialLogin(staticGoogleData);
 
     if (success) {
       onLogin();
     }
   };
 
-  const handleGoogleError = () => {
-    console.error('Google login failed');
+  // Static test credentials for Apple
+  const handleAppleLogin = async () => {
+    const staticAppleData = {
+      email: "rahul@pomorix.com",
+      auth_provider: AuthProvider.APPLE,
+      auth_provider_id: "apple-12345674589"
+    };
+
+    const success = await socialLogin(staticAppleData);
+
+    if (success) {
+      onLogin();
+    }
   };
 
   return (
@@ -79,19 +59,22 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </div>
           )}
 
-          <div className="flex items-center justify-center">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={handleGoogleError}
-              theme="outline"
-              size="large"
-              text="continue_with"
-              width="100%"
+          <button
+            onClick={handleGoogleLogin}
+            className="flex items-center justify-center gap-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 py-4 transition-all duration-200 text-base font-bold shadow-sharp group w-full active:translate-y-[1px]"
+            type="button"
+            disabled={loading}
+          >
+            <img
+              alt="Google Logo"
+              className="w-5 h-5 group-hover:scale-110 transition-transform"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsF0E2CVTNHGoeR9Isy5PBq50p83AVukbfLVilqzO1cW7hxbgGOEAGnOgYmXSZCOowlAkNS6lORhwpr-YAjoLsYdDe627ptpeTwnQDFWWkT4O8YRDxPmalgxp4sYuFodBGvCRAAvZHv1WUFhbfoCZPbCgOyl_Vu177FqZyPUQTnfKEGzawH4XkpSztSl4d0MewKKoMmKrOKcP31m2oy95P8M2IfpH_VxMyNAScGYKL2jmR3DEDcR2njO1UWVPVt9qB6Ep2rVz405g"
             />
-          </div>
+            <span>{loading ? 'Signing in...' : 'Continue with Google'}</span>
+          </button>
 
           <button
-            onClick={onLogin}
+            onClick={handleAppleLogin}
             className="flex items-center justify-center gap-3 bg-slate-900 hover:bg-black border border-slate-900 text-white py-4 transition-all duration-200 text-base font-bold shadow-sharp group w-full active:translate-y-[1px]"
             type="button"
             disabled={loading}
