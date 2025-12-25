@@ -8,13 +8,13 @@ import Login from './pages/Login';
 import Layout from './components/Layout';
 
 const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // Default for demo
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Show login by default
 
   return (
     <HashRouter>
       <Routes>
         <Route path="/login" element={<Login onLogin={() => setIsAuthenticated(true)} />} />
-        
+
         <Route
           path="/"
           element={isAuthenticated ? <Layout /> : <Navigate to="/login" />}
@@ -23,7 +23,7 @@ const App: React.FC = () => {
           <Route path="profile" element={<Profile />} />
           <Route path="settings" element={<Settings />} />
         </Route>
-        
+
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </HashRouter>
