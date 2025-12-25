@@ -37,6 +37,21 @@ export interface PaginatedResponse<T> {
 
 // ==================== Auth API Types ====================
 
+// Auth Provider Enum
+export enum AuthProvider {
+    GOOGLE = 'GOOGLE',
+    APPLE = 'APPLE',
+    EMAIL = 'EMAIL',
+}
+
+// Social Authentication (OAuth)
+export interface SigninDto {
+    email: string;
+    auth_provider: AuthProvider;
+    auth_provider_id: string;
+}
+
+// Email/Password Authentication
 export interface LoginRequest {
     email: string;
     password: string;

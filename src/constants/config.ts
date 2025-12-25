@@ -4,9 +4,10 @@
  */
 
 export const API_CONFIG = {
-    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api',
+    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
     timeout: 30000, // 30 seconds
     geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY || '',
+    googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
 } as const;
 
 export const APP_CONFIG = {

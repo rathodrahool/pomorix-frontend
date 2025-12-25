@@ -7,6 +7,7 @@ import type {
     RegisterResponse,
     UserData,
     ApiResponse,
+    SigninDto,
 } from '../types';
 
 /**
@@ -15,7 +16,25 @@ import type {
  */
 export const authService = {
     /**
-     * Login user
+     * Social Login (Google/Apple OAuth)
+     */
+    async socialLogin(signinData: SigninDto): Promise<LoginResponse> {
+        const response = await apiClient.post<ApiResponse<LoginResponse>>(
+            API_ENDPOINTS.AUTH.LOGIN,
+            signinData
+        );
+
+        // Store token in localStorage
+        if (response.data.data.token) {
+            storage.setToken(response.data.data.token);
+            storage.setUserData(response.data.data.user);
+        }
+
+        return response.data.data;
+    },
+
+    /**
+     * Login user (Email/Password)
      */
     async login(credentials: LoginRequest): Promise<LoginResponse> {
         const response = await apiClient.post<ApiResponse<LoginResponse>>(

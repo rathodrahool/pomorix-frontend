@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { authService } from '../services';
-import type { LoginRequest, RegisterRequest, UserData } from '../types';
+import type { LoginRequest, RegisterRequest, UserData, SigninDto } from '../types';
 
 /**
  * Authentication Hook
@@ -13,6 +13,7 @@ interface UseAuthReturn {
     loading: boolean;
     error: string | null;
     login: (credentials: LoginRequest) => Promise<boolean>;
+    socialLogin: (signinData: SigninDto) => Promise<boolean>;
     register: (userData: RegisterRequest) => Promise<boolean>;
     logout: () => Promise<void>;
     checkAuth: () => Promise<void>;
@@ -63,6 +64,22 @@ export function useAuth(): UseAuthReturn {
         }
     }, []);
 
+    const socialLogin = useCallback(async (signinData: SigninDto): Promise<boolean> => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await authService.socialLogin(signinData);
+            setUser(response.user);
+            return true;
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Social login failed');
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     const register = useCallback(async (userData: RegisterRequest): Promise<boolean> => {
         setLoading(true);
         setError(null);
@@ -99,6 +116,7 @@ export function useAuth(): UseAuthReturn {
         loading,
         error,
         login,
+        socialLogin,
         register,
         logout,
         checkAuth,
