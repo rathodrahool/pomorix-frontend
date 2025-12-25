@@ -114,18 +114,18 @@ const TaskList: React.FC = () => {
           {tasks.map((task) => (
             <div
               key={task.id}
-              className={`group flex items - center justify - between p - 5 hover: bg - bg - page transition - colors cursor - pointer ${task.completed ? 'opacity-50' : ''} `}
+              className={`group flex items-center justify-between p-5 hover:bg-bg-page transition-colors cursor-pointer ${task.completed ? 'opacity-50' : ''}`}
             >
               <div className="flex items-center gap-4">
                 <button
                   onClick={(e) => { e.stopPropagation(); handleToggleTask(task.id); }}
                   disabled={loading}
-                  className={`size - 5 border - 2 transition - colors flex items - center justify - center ${task.completed ? 'bg-primary border-primary text-white' : 'border-gray-300 hover:border-primary hover:bg-primary/10'} disabled: opacity - 50`}
+                  className={`size-5 border-2 transition-colors flex items-center justify-center ${task.completed ? 'bg-primary border-primary text-white' : 'border-gray-300 hover:border-primary hover:bg-primary/10'} disabled:opacity-50`}
                 >
                   {task.completed && <span className="material-symbols-outlined !text-[14px]">check</span>}
                 </button>
                 <div className="flex flex-col">
-                  <span className={`text - text - main font - medium text - base group - hover: text - primary transition - colors ${task.completed ? 'line-through' : ''} `}>
+                  <span className={`text-text-main font-medium text-base group-hover:text-primary transition-colors ${task.completed ? 'line-through' : ''}`}>
                     {task.title}
                   </span>
                   <span className="text-text-secondary text-xs flex items-center gap-1 mt-1">
@@ -134,15 +134,15 @@ const TaskList: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity ml-4">
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id); }}
                   disabled={loading}
-                  className="p-2 text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                  className="p-2 text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 rounded"
                 >
                   <span className="material-symbols-outlined !text-[20px]">delete</span>
                 </button>
-                <button className="p-2 text-text-secondary hover:text-text-main cursor-grab active:cursor-grabbing">
+                <button className="p-2 text-text-secondary hover:text-text-main hover:bg-gray-100 cursor-grab active:cursor-grabbing rounded">
                   <span className="material-symbols-outlined !text-[20px]">drag_indicator</span>
                 </button>
               </div>
