@@ -7,6 +7,8 @@ const TaskList: React.FC = () => {
   const { tasks, loading, fetchTasks } = useTasks();
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
 
   const addTask = async () => {
     if (!newTaskTitle.trim()) return;
@@ -46,6 +48,31 @@ const TaskList: React.FC = () => {
       toast.success(response.data.message); // Use backend message
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || 'Failed to delete task';
+      toast.error(errorMsg);
+    }
+  };
+
+  const startEdit = (task: any) => {
+    setEditingTaskId(task.id);
+    setEditingTitle(task.title);
+  };
+
+  const cancelEdit = () => {
+    setEditingTaskId(null);
+    setEditingTitle('');
+  };
+
+  const saveEdit = async () => {
+    if (!editingTitle.trim() || !editingTaskId) return;
+
+    try {
+      const response = await apiClient.patch(API_ENDPOINTS.TASKS.UPDATE(editingTaskId), { title: editingTitle });
+      await fetchTasks();
+      toast.success(response.data.message || 'Task updated successfully');
+      setEditingTaskId(null);
+      setEditingTitle('');
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || 'Failed to update task';
       toast.error(errorMsg);
     }
   };
@@ -119,25 +146,64 @@ const TaskList: React.FC = () => {
               <div className="flex items-center gap-4">
                 <button
                   onClick={(e) => { e.stopPropagation(); handleToggleTask(task.id); }}
-                  disabled={loading}
+                  disabled={loading || editingTaskId === task.id}
                   className={`size-5 border-2 transition-colors flex items-center justify-center ${task.completed ? 'bg-primary border-primary text-white' : 'border-gray-300 hover:border-primary hover:bg-primary/10'} disabled:opacity-50`}
                 >
                   {task.completed && <span className="material-symbols-outlined !text-[14px]">check</span>}
                 </button>
-                <div className="flex flex-col">
-                  <span className={`text-text-main font-medium text-base group-hover:text-primary transition-colors ${task.completed ? 'line-through' : ''}`}>
-                    {task.title}
-                  </span>
-                  <span className="text-text-secondary text-xs flex items-center gap-1 mt-1">
-                    <span className="material-symbols-outlined !text-[14px]">timer</span> {task.pomodoros || 0} Pomodoro{task.pomodoros !== 1 ? 's' : ''}
-                  </span>
+                <div className="flex flex-col flex-1">
+                  {editingTaskId === task.id ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={editingTitle}
+                        onChange={(e) => setEditingTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') saveEdit();
+                          if (e.key === 'Escape') cancelEdit();
+                        }}
+                        className="flex-1 border border-primary px-3 py-1.5 text-base focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        autoFocus
+                      />
+                      <button
+                        onClick={saveEdit}
+                        className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors"
+                        title="Save"
+                      >
+                        <span className="material-symbols-outlined !text-[18px]">check</span>
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Cancel"
+                      >
+                        <span className="material-symbols-outlined !text-[18px]">close</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <span className={`text-text-main font-medium text-base group-hover:text-primary transition-colors ${task.completed ? 'line-through' : ''}`}>
+                        {task.title}
+                      </span>
+                      <span className="text-text-secondary text-xs flex items-center gap-1 mt-1">
+                        <span className="material-symbols-outlined !text-[14px]">timer</span> {task.pomodoros || 0} Pomodoro{task.pomodoros !== 1 ? 's' : ''}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity ml-4">
+              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={(e) => { e.stopPropagation(); startEdit(task); }}
+                  disabled={loading || editingTaskId !== null}
+                  className="p-2 text-text-secondary hover:text-primary hover:bg-gray-100 transition-colors disabled:opacity-50 rounded"
+                >
+                  <span className="material-symbols-outlined !text-[20px]">edit</span>
+                </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id); }}
-                  disabled={loading}
+                  disabled={loading || editingTaskId !== null}
                   className="p-2 text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 rounded"
                 >
                   <span className="material-symbols-outlined !text-[20px]">delete</span>
