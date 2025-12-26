@@ -47,4 +47,9 @@ export const API_ENDPOINTS = {
         LEAVE: '/live/leave',
         UPDATE_STATUS: '/live/status',
     },
+
+    // Pomodoro Sessions
+    POMODORO: {
+        START: '/pomodoro-session/start',
+    },
 } as const;

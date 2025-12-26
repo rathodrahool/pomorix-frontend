@@ -1,6 +1,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { TimerMode } from '../../types';
+import { pomodoroService } from '../../services';
+import type { PomodoroSessionResponse } from '../../types';
 
 interface TimerDisplayProps {
   initialTask: string;
@@ -14,6 +17,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
   const [secondsLeft, setSecondsLeft] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
   const [taskInput, setTaskInput] = useState(initialTask);
+  const [currentSession, setCurrentSession] = useState<PomodoroSessionResponse | null>(null);
 
   // Auto-pause if active task is removed
   useEffect(() => {
@@ -66,6 +70,36 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
   };
 
   const { mins, secs } = formatTime(secondsLeft);
+
+  const startPomodoroSession = async () => {
+    if (!hasActiveTask) return;
+
+    try {
+      const session = await pomodoroService.startSession(
+        getInitialSeconds(mode),  // focus duration
+        mode === 'shortBreak' ? 5 * 60 : 15 * 60  // break duration
+      );
+
+      setCurrentSession(session);
+      setIsActive(true);
+      toast.success(`Pomodoro started for "${session.task_title}"`);
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || 'Failed to start Pomodoro session';
+      toast.error(errorMsg);
+    }
+  };
+
+  const handleStartPause = () => {
+    if (!hasActiveTask) return;
+
+    if (!isActive && !currentSession) {
+      // Starting fresh - call API
+      startPomodoroSession();
+    } else {
+      // Just pause/resume
+      setIsActive(!isActive);
+    }
+  };
 
   return (
     <section className="flex flex-col items-center bg-white p-8 border border-border-subtle shadow-sharp w-full">
@@ -141,7 +175,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
           <span className="material-symbols-outlined !text-[24px]">restart_alt</span>
         </button>
         <button
-          onClick={() => !hasActiveTask ? null : setIsActive(!isActive)}
+          onClick={handleStartPause}
           disabled={!hasActiveTask}
           className={`group flex min-w-[200px] items-center justify-center h-14 px-8 ${isActive ? 'bg-white text-primary border-primary' : 'bg-primary text-white border-primary-dark'} hover:opacity-90 transition-all gap-3 text-lg font-bold border shadow-sharp active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed`}
           title={!hasAnyTasks ? 'Create a task first' : !hasActiveTask ? 'Select a task to start' : ''}
