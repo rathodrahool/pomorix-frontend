@@ -50,4 +50,20 @@ export const pomodoroService = {
 
         return response.data.data as ActiveSessionData;
     },
+
+    /**
+     * Pause the current active session
+     * Server tracks pause time automatically
+     */
+    async pauseSession(): Promise<void> {
+        await apiClient.post(API_ENDPOINTS.POMODORO.PAUSE);
+    },
+
+    /**
+     * Resume the paused session
+     * After resuming, fetch current session to get updated remaining_seconds
+     */
+    async resumeSession(): Promise<void> {
+        await apiClient.post(API_ENDPOINTS.POMODORO.RESUME);
+    },
 };

@@ -106,15 +106,39 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
     }
   };
 
-  const handleStartPause = () => {
+  const handleStartPause = async () => {
     if (!hasActiveTask) return;
 
     if (!isActive && !currentSession) {
-      // Starting fresh - call API
+      // Starting fresh - call start API
       startPomodoroSession();
-    } else {
-      // Just pause/resume
-      setIsActive(!isActive);
+    } else if (isActive && currentSession) {
+      // Currently running - pause it
+      try {
+        await pomodoroService.pauseSession();
+        setIsActive(false);
+        toast.success('Session paused');
+      } catch (err: any) {
+        const errorMsg = err.response?.data?.message || 'Failed to pause session';
+        toast.error(errorMsg);
+      }
+    } else if (!isActive && currentSession) {
+      // Currently paused - resume it
+      try {
+        await pomodoroService.resumeSession();
+
+        // Fetch fresh session data to get accurate remaining_seconds
+        const session = await pomodoroService.getCurrentSession();
+        if (session) {
+          setCurrentSession(session);
+          setSecondsLeft(session.remaining_seconds);
+          setIsActive(true);
+          toast.success('Session resumed');
+        }
+      } catch (err: any) {
+        const errorMsg = err.response?.data?.message || 'Failed to resume session';
+        toast.error(errorMsg);
+      }
     }
   };
 
