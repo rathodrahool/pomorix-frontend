@@ -215,7 +215,7 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                 key={task.id}
                 onClick={() => handleToggleActive(task.id)}
                 className={`group flex items-center justify-between p-5 hover:bg-bg-page transition-colors cursor-pointer ${task.completed ? 'opacity-50' : ''
-                  } ${task.is_active ? 'bg-primary/5 border-l-4 border-l-primary' : ''
+                  } ${task.is_active ? 'bg-orange-50/30 border-l-4 !border-l-[#F15025]' : ''
                   }`}
               >
                 <div className="flex items-center gap-4">

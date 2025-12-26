@@ -21,6 +21,9 @@ const Home: React.FC = () => {
     }
   }, [tasks]);
 
+  const hasActiveTask = tasks.some(task => task.is_active);
+  const hasAnyTasks = tasks.length > 0;
+
   return (
     <div className="flex flex-col xl:flex-row h-[calc(100vh-64px)] overflow-hidden">
       {/* Left Sidebar - Stats (Large screens only) */}
@@ -31,7 +34,12 @@ const Home: React.FC = () => {
       {/* Main Content - Timer & Tasks */}
       <main className="flex-1 flex flex-col items-center overflow-y-auto py-8 px-4 md:px-8 bg-white">
         <div className="flex flex-col w-full max-w-[700px] gap-8">
-          <TimerDisplay initialTask={currentTask} onTaskChange={setCurrentTask} />
+          <TimerDisplay
+            initialTask={currentTask}
+            onTaskChange={setCurrentTask}
+            hasActiveTask={hasActiveTask}
+            hasAnyTasks={hasAnyTasks}
+          />
           <TaskList sharedTasks={tasks} sharedLoading={loading} onRefresh={fetchTasks} />
         </div>
       </main>

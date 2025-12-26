@@ -5,13 +5,22 @@ import { TimerMode } from '../../types';
 interface TimerDisplayProps {
   initialTask: string;
   onTaskChange: (task: string) => void;
+  hasActiveTask: boolean;
+  hasAnyTasks: boolean;
 }
 
-const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange }) => {
+const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, hasActiveTask, hasAnyTasks }) => {
   const [mode, setMode] = useState<TimerMode>('focus');
   const [secondsLeft, setSecondsLeft] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
   const [taskInput, setTaskInput] = useState(initialTask);
+
+  // Auto-pause if active task is removed
+  useEffect(() => {
+    if (!hasActiveTask && isActive) {
+      setIsActive(false);
+    }
+  }, [hasActiveTask, isActive]);
 
   // Sync taskInput when initialTask prop changes
   useEffect(() => {
@@ -132,8 +141,10 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange }
           <span className="material-symbols-outlined !text-[24px]">restart_alt</span>
         </button>
         <button
-          onClick={() => setIsActive(!isActive)}
-          className={`group flex min-w-[200px] cursor-pointer items-center justify-center h-14 px-8 ${isActive ? 'bg-white text-primary border-primary' : 'bg-primary text-white border-primary-dark'} hover:opacity-90 transition-all gap-3 text-lg font-bold border shadow-sharp active:translate-y-[2px] active:shadow-none`}
+          onClick={() => !hasActiveTask ? null : setIsActive(!isActive)}
+          disabled={!hasActiveTask}
+          className={`group flex min-w-[200px] items-center justify-center h-14 px-8 ${isActive ? 'bg-white text-primary border-primary' : 'bg-primary text-white border-primary-dark'} hover:opacity-90 transition-all gap-3 text-lg font-bold border shadow-sharp active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed`}
+          title={!hasAnyTasks ? 'Create a task first' : !hasActiveTask ? 'Select a task to start' : ''}
         >
           <span className="material-symbols-outlined !text-[28px]">{isActive ? 'pause' : 'play_arrow'}</span>
           <span>{isActive ? 'Pause Focus' : 'Start Focus'}</span>
