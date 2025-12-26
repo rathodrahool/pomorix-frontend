@@ -189,33 +189,18 @@ const TaskList: React.FC = () => {
                   </button>
                   <div className="flex flex-col flex-1">
                     {editingTaskId === task.id ? (
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={editingTitle}
-                          onChange={(e) => setEditingTitle(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') saveEdit();
-                            if (e.key === 'Escape') cancelEdit();
-                          }}
-                          className="flex-1 border border-primary px-3 py-1.5 text-base focus:outline-none focus:ring-2 focus:ring-primary/20"
-                          autoFocus
-                        />
-                        <button
-                          onClick={saveEdit}
-                          className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors"
-                          title="Save"
-                        >
-                          <span className="material-symbols-outlined !text-[18px]">check</span>
-                        </button>
-                        <button
-                          onClick={cancelEdit}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                          title="Cancel"
-                        >
-                          <span className="material-symbols-outlined !text-[18px]">close</span>
-                        </button>
-                      </div>
+                      <input
+                        type="text"
+                        value={editingTitle}
+                        onChange={(e) => setEditingTitle(e.target.value)}
+                        onBlur={saveEdit}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') saveEdit();
+                          if (e.key === 'Escape') cancelEdit();
+                        }}
+                        className="flex-1 border border-primary px-3 py-1.5 text-base font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        autoFocus
+                      />
                     ) : (
                       <>
                         <span className={`text-text-main font-medium text-base group-hover:text-primary transition-colors ${task.completed ? 'line-through' : ''}`}>
@@ -243,9 +228,6 @@ const TaskList: React.FC = () => {
                     className="p-2 text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 rounded"
                   >
                     <span className="material-symbols-outlined !text-[20px]">delete</span>
-                  </button>
-                  <button className="p-2 text-text-secondary hover:text-text-main hover:bg-gray-100 cursor-grab active:cursor-grabbing rounded">
-                    <span className="material-symbols-outlined !text-[20px]">drag_indicator</span>
                   </button>
                 </div>
               </div>
