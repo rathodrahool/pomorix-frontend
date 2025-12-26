@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { TimerMode } from '../../types';
 import { pomodoroService } from '../../services';
-import type { PomodoroSessionResponse } from '../../types';
+import type { PomodoroSessionResponse, ActiveSessionData } from '../../types';
 
 interface TimerDisplayProps {
   initialTask: string;
@@ -17,7 +17,24 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
   const [secondsLeft, setSecondsLeft] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
   const [taskInput, setTaskInput] = useState(initialTask);
-  const [currentSession, setCurrentSession] = useState<PomodoroSessionResponse | null>(null);
+  const [currentSession, setCurrentSession] = useState<ActiveSessionData | null>(null);
+
+  // Fetch current session on mount to sync with backend
+  useEffect(() => {
+    const fetchSession = async () => {
+      try {
+        const session = await pomodoroService.getCurrentSession();
+        if (session) {
+          setCurrentSession(session);
+          setSecondsLeft(session.remaining_seconds);
+          setIsActive(!session.is_paused);
+        }
+      } catch (err) {
+        // Silent fail - no active session is normal
+      }
+    };
+    fetchSession();
+  }, []);
 
   // Auto-pause if active task is removed
   useEffect(() => {

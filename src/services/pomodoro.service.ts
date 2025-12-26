@@ -3,6 +3,8 @@ import type {
     StartPomodoroRequest,
     StartPomodoroResponse,
     PomodoroSessionResponse,
+    CurrentSessionResponse,
+    ActiveSessionData,
 } from '../types';
 
 /**
@@ -29,5 +31,23 @@ export const pomodoroService = {
         );
 
         return response.data.data;
+    },
+
+    /**
+     * Get current active session
+     * Returns null if no active session exists
+     * Provides server-calculated remaining_seconds and elapsed_seconds
+     */
+    async getCurrentSession(): Promise<ActiveSessionData | null> {
+        const response = await apiClient.get<CurrentSessionResponse>(
+            API_ENDPOINTS.POMODORO.CURRENT
+        );
+
+        // Check if there's an active session
+        if ('active' in response.data.data && !response.data.data.active) {
+            return null;
+        }
+
+        return response.data.data as ActiveSessionData;
     },
 };

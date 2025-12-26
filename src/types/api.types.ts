@@ -209,3 +209,28 @@ export interface StartPomodoroResponse {
     message: string;
     data: PomodoroSessionResponse;
 }
+
+// Current session types
+export interface ActiveSessionData {
+    session_id: string;
+    task_id: string;
+    task_title: string;
+    state: PomodoroSessionState;
+    focus_duration_seconds: number;
+    break_duration_seconds: number;
+    started_at: string;
+    paused_at: string | null;
+    is_paused: boolean;
+    remaining_seconds: number;  // Auto-calculated by server
+    elapsed_seconds: number;    // Auto-calculated by server
+}
+
+export interface NoSessionData {
+    active: false;
+}
+
+export interface CurrentSessionResponse {
+    statusCode: number;
+    message: string;
+    data: ActiveSessionData | NoSessionData;
+}
