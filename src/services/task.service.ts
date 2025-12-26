@@ -71,11 +71,12 @@ export const taskService = {
     },
 
     /**
-     * Set task as active
+     * Toggle task as active/inactive
+     * Only one task can be active at a time
      */
-    async setActive(taskId: string): Promise<TaskResponse> {
+    async toggleActive(taskId: string): Promise<TaskResponse> {
         const response = await apiClient.patch<ApiResponse<TaskResponse>>(
-            API_ENDPOINTS.TASKS.SET_ACTIVE(taskId)
+            API_ENDPOINTS.TASKS.TOGGLE_ACTIVE(taskId)
         );
         return response.data.data;
     },

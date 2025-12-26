@@ -1,12 +1,26 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TimerDisplay from '../components/Timer/TimerDisplay';
 import TaskList from '../components/Tasks/TaskList';
 import StatsSidebar from '../components/Sidebar/StatsSidebar';
 import LiveFeed from '../components/Sidebar/LiveFeed';
+import { useTasks } from '../hooks';
 
 const Home: React.FC = () => {
-  const [currentTask, setCurrentTask] = useState("Review Chapter 4 Notes");
+  const { tasks } = useTasks();
+  const [currentTask, setCurrentTask] = useState("What are you working on?");
+
+  // Update current task when active task changes
+  useEffect(() => {
+    console.log('Home - All tasks:', tasks);
+    const activeTask = tasks.find(task => task.is_active);
+    console.log('Home - Active task found:', activeTask);
+    if (activeTask) {
+      setCurrentTask(activeTask.title);
+    } else {
+      setCurrentTask("What are you working on?");
+    }
+  }, [tasks]);
 
   return (
     <div className="flex flex-col xl:flex-row h-[calc(100vh-64px)] overflow-hidden">

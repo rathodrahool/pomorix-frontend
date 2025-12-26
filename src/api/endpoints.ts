@@ -29,7 +29,7 @@ export const API_ENDPOINTS = {
         UPDATE: (id: string) => `/tasks/${id}`,
         DELETE: (id: string) => `/tasks/${id}`,
         TOGGLE_COMPLETE: (id: string) => `/tasks/${id}/toggle`,
-        SET_ACTIVE: (id: string) => `/tasks/${id}/activate`,
+        TOGGLE_ACTIVE: (id: string) => `/tasks/${id}/toggle-active`,
     },
 
     // Timer / Pomodoro

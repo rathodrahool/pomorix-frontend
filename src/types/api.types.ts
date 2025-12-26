@@ -96,7 +96,7 @@ export interface UpdateTaskRequest {
     title?: string;
     pomodoros?: number;
     completed?: boolean;
-    active?: boolean;
+    is_active?: boolean;
 }
 
 export interface TaskResponse {
@@ -104,7 +104,7 @@ export interface TaskResponse {
     title: string;
     pomodoros: number;
     completed: boolean;
-    active: boolean;
+    is_active: boolean;
     userId: string;
     createdAt: string;
     updatedAt: string;

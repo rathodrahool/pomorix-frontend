@@ -16,7 +16,7 @@ interface UseTasksReturn {
     updateTask: (taskId: string, updates: UpdateTaskRequest) => Promise<TaskResponse | null>;
     deleteTask: (taskId: string) => Promise<boolean>;
     toggleComplete: (taskId: string) => Promise<boolean>;
-    setActive: (taskId: string) => Promise<boolean>;
+    toggleActive: (taskId: string) => Promise<boolean>;
 }
 
 export function useTasks(autoFetch = true): UseTasksReturn {
@@ -93,19 +93,19 @@ export function useTasks(autoFetch = true): UseTasksReturn {
         }
     }, []);
 
-    const setActive = useCallback(async (taskId: string): Promise<boolean> => {
+    const toggleActive = useCallback(async (taskId: string): Promise<boolean> => {
         setError(null);
 
         try {
-            const updatedTask = await taskService.setActive(taskId);
-            // Deactivate all other tasks and activate this one
+            const updatedTask = await taskService.toggleActive(taskId);
+            // Deactivate all other tasks and activate the toggled one
             setTasks(prev => prev.map(task => ({
                 ...task,
-                active: task.id === taskId,
+                is_active: task.id === taskId ? updatedTask.is_active : false,
             })));
             return true;
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to set active task');
+            setError(err.response?.data?.message || 'Failed to toggle active task');
             return false;
         }
     }, []);
@@ -126,6 +126,6 @@ export function useTasks(autoFetch = true): UseTasksReturn {
         updateTask,
         deleteTask,
         toggleComplete,
-        setActive,
+        toggleActive,
     };
 }

@@ -13,6 +13,11 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange }
   const [isActive, setIsActive] = useState(false);
   const [taskInput, setTaskInput] = useState(initialTask);
 
+  // Sync taskInput when initialTask prop changes
+  useEffect(() => {
+    setTaskInput(initialTask);
+  }, [initialTask]);
+
   const getInitialSeconds = useCallback((m: TimerMode) => {
     switch (m) {
       case 'focus': return 25 * 60;
@@ -57,19 +62,19 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange }
     <section className="flex flex-col items-center bg-white p-8 border border-border-subtle shadow-sharp w-full">
       {/* Tabs */}
       <div className="flex border border-border-subtle bg-bg-page mb-10 overflow-hidden">
-        <button 
+        <button
           onClick={() => changeMode('focus')}
           className={`px-6 py-2 text-sm font-bold border-r border-border-subtle transition-colors ${mode === 'focus' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-white'}`}
         >
           Focus
         </button>
-        <button 
+        <button
           onClick={() => changeMode('shortBreak')}
           className={`px-6 py-2 text-sm font-bold border-r border-border-subtle transition-colors ${mode === 'shortBreak' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-white'}`}
         >
           Short Break
         </button>
-        <button 
+        <button
           onClick={() => changeMode('longBreak')}
           className={`px-6 py-2 text-sm font-bold transition-colors ${mode === 'longBreak' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-white'}`}
         >
@@ -85,16 +90,16 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange }
 
       {/* Task Input */}
       <div className="w-full relative group mb-8">
-        <input 
+        <input
           className="w-full bg-transparent border-none text-center py-2 px-4 text-3xl md:text-4xl font-display font-bold text-text-main placeholder-gray-300 outline-none transition-all"
-          placeholder="What are you working on?" 
-          type="text" 
+          placeholder="What are you working on?"
+          type="text"
           value={taskInput}
           onChange={(e) => setTaskInput(e.target.value)}
           onBlur={() => onTaskChange(taskInput)}
         />
         <div className="flex justify-center mt-2">
-            <div className="h-0.5 w-1/4 bg-primary/20 group-focus-within:w-1/2 group-focus-within:bg-primary transition-all"></div>
+          <div className="h-0.5 w-1/4 bg-primary/20 group-focus-within:w-1/2 group-focus-within:bg-primary transition-all"></div>
         </div>
       </div>
 
@@ -119,25 +124,25 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange }
 
       {/* Actions */}
       <div className="flex justify-center w-full gap-4">
-        <button 
-            onClick={() => { setSecondsLeft(getInitialSeconds(mode)); setIsActive(false); }}
-            className="flex h-14 w-14 items-center justify-center bg-bg-page hover:bg-white transition-all text-text-secondary border border-border-subtle shadow-sharp active:translate-y-[2px] active:shadow-none"
-            title="Reset"
+        <button
+          onClick={() => { setSecondsLeft(getInitialSeconds(mode)); setIsActive(false); }}
+          className="flex h-14 w-14 items-center justify-center bg-bg-page hover:bg-white transition-all text-text-secondary border border-border-subtle shadow-sharp active:translate-y-[2px] active:shadow-none"
+          title="Reset"
         >
-            <span className="material-symbols-outlined !text-[24px]">restart_alt</span>
+          <span className="material-symbols-outlined !text-[24px]">restart_alt</span>
         </button>
-        <button 
+        <button
           onClick={() => setIsActive(!isActive)}
           className={`group flex min-w-[200px] cursor-pointer items-center justify-center h-14 px-8 ${isActive ? 'bg-white text-primary border-primary' : 'bg-primary text-white border-primary-dark'} hover:opacity-90 transition-all gap-3 text-lg font-bold border shadow-sharp active:translate-y-[2px] active:shadow-none`}
         >
           <span className="material-symbols-outlined !text-[28px]">{isActive ? 'pause' : 'play_arrow'}</span>
           <span>{isActive ? 'Pause Focus' : 'Start Focus'}</span>
         </button>
-        <button 
-            className="flex h-14 w-14 items-center justify-center bg-bg-page hover:bg-white transition-all text-text-secondary border border-border-subtle shadow-sharp active:translate-y-[2px] active:shadow-none"
-            title="Skip"
+        <button
+          className="flex h-14 w-14 items-center justify-center bg-bg-page hover:bg-white transition-all text-text-secondary border border-border-subtle shadow-sharp active:translate-y-[2px] active:shadow-none"
+          title="Skip"
         >
-            <span className="material-symbols-outlined !text-[24px]">skip_next</span>
+          <span className="material-symbols-outlined !text-[24px]">skip_next</span>
         </button>
       </div>
 
