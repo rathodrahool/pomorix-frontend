@@ -37,27 +37,44 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             onClick={onCancel}
         >
             <div
-                className="bg-white border border-gray-300 shadow-lg p-6 max-w-md w-full mx-4"
+                className="bg-white border border-gray-300 shadow-lg max-w-md w-full mx-4 overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
-                <h3 className="text-lg font-bold text-text-main mb-2">{title}</h3>
-                <p className="text-text-secondary text-sm mb-4">{message}</p>
+                {/* Red top border */}
+                <div className="h-1 bg-red-500"></div>
 
-                <div className="flex gap-3 justify-end">
-                    <button
-                        onClick={onCancel}
-                        disabled={isLoading}
-                        className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-main border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50"
-                    >
-                        {cancelText}
-                    </button>
-                    <button
-                        onClick={onConfirm}
-                        disabled={isLoading}
-                        className={`px-4 py-2 text-sm font-bold text-white ${variantStyles[variant]} transition-colors disabled:opacity-50`}
-                    >
-                        {isLoading ? 'Processing...' : confirmText}
-                    </button>
+                {/* Content */}
+                <div className="p-8 text-center">
+                    {/* Icon */}
+                    <div className="flex justify-center mb-4">
+                        <div className="w-12 h-12 bg-red-500 rounded flex items-center justify-center">
+                            <span className="material-symbols-outlined text-white !text-[24px]">close</span>
+                        </div>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="text-xl font-bold text-text-main mb-3">{title}</h3>
+
+                    {/* Message */}
+                    <p className="text-text-secondary text-sm mb-6">{message}</p>
+
+                    {/* Buttons */}
+                    <div className="flex gap-3">
+                        <button
+                            onClick={onCancel}
+                            disabled={isLoading}
+                            className="flex-1 px-6 py-3 text-sm font-medium text-text-main bg-white border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        >
+                            {cancelText}
+                        </button>
+                        <button
+                            onClick={onConfirm}
+                            disabled={isLoading}
+                            className={`flex-1 px-6 py-3 text-sm font-bold text-white ${variantStyles[variant]} transition-colors disabled:opacity-50`}
+                        >
+                            {isLoading ? 'Processing...' : confirmText}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
