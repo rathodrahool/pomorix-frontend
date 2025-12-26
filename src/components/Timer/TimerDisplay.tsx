@@ -69,13 +69,28 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
       interval = setInterval(() => {
         setSecondsLeft((s) => s - 1);
       }, 1000);
-    } else if (secondsLeft === 0) {
+    } else if (secondsLeft === 0 && currentSession) {
+      // Timer hit zero - complete the session
       setIsActive(false);
-      // Play sound or notify
-      alert('Time is up!');
+
+      const completeSessionAsync = async () => {
+        try {
+          await pomodoroService.completeSession();
+          toast.success('🎉 Pomodoro completed! Great work!', { duration: 4000 });
+
+          // Reset state
+          setCurrentSession(null);
+          setSecondsLeft(getInitialSeconds(mode));
+        } catch (err: any) {
+          const errorMsg = err.response?.data?.message || 'Failed to complete session';
+          toast.error(errorMsg);
+        }
+      };
+
+      completeSessionAsync();
     }
     return () => clearInterval(interval);
-  }, [isActive, secondsLeft]);
+  }, [isActive, secondsLeft, currentSession, mode, getInitialSeconds]);
 
   const formatTime = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);

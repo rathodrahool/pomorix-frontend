@@ -54,5 +54,6 @@ export const API_ENDPOINTS = {
         CURRENT: '/pomodoro-session/current',
         PAUSE: '/pomodoro-session/pause',
         RESUME: '/pomodoro-session/resume',
+        COMPLETE: '/pomodoro-session/complete',
     },
 } as const;

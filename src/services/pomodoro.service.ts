@@ -66,4 +66,13 @@ export const pomodoroService = {
     async resumeSession(): Promise<void> {
         await apiClient.post(API_ENDPOINTS.POMODORO.RESUME);
     },
+
+    /**
+     * Complete the current focus session
+     * Called when timer countdown reaches zero
+     * Only works for FOCUS state sessions
+     */
+    async completeSession(): Promise<void> {
+        await apiClient.post(API_ENDPOINTS.POMODORO.COMPLETE);
+    },
 };
