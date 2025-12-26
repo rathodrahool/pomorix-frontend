@@ -1,11 +1,20 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
-import { useTasks } from '../../hooks';
 import { apiClient, API_ENDPOINTS } from '../../api';
 import { ConfirmModal } from '../Common';
+import type { TaskResponse } from '../../types';
 
-const TaskList: React.FC = () => {
-  const { tasks, loading, fetchTasks, toggleActive } = useTasks();
+interface TaskListProps {
+  sharedTasks: TaskResponse[];
+  sharedLoading: boolean;
+  onRefresh: () => Promise<void>;
+}
+
+const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefresh }) => {
+  // Use shared state from Home component
+  const tasks = sharedTasks;
+  const loading = sharedLoading;
+  const fetchTasks = onRefresh;
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
@@ -110,13 +119,10 @@ const TaskList: React.FC = () => {
 
   const handleToggleActive = async (id: string) => {
     try {
-      console.log('Toggling task:', id);
-
       // If clicking on an already active task, just deactivate it
       const clickedTask = tasks.find(t => t.id === id);
       if (clickedTask?.is_active) {
         const response = await apiClient.patch(API_ENDPOINTS.TASKS.TOGGLE_ACTIVE(id));
-        console.log('Deactivate response:', response.data);
         await fetchTasks();
         toast.success(response.data.message || 'Task deactivated');
         return;
@@ -125,17 +131,14 @@ const TaskList: React.FC = () => {
       // Find currently active task and deactivate it first
       const currentlyActiveTask = tasks.find(t => t.is_active);
       if (currentlyActiveTask && currentlyActiveTask.id !== id) {
-        console.log('Deactivating previous task:', currentlyActiveTask.id);
         await apiClient.patch(API_ENDPOINTS.TASKS.TOGGLE_ACTIVE(currentlyActiveTask.id));
       }
 
       // Now activate the clicked task
       const response = await apiClient.patch(API_ENDPOINTS.TASKS.TOGGLE_ACTIVE(id));
-      console.log('Activate response:', response.data);
-      await fetchTasks(); // Refresh the list
+      await fetchTasks();
       toast.success(response.data.message || 'Task activated');
     } catch (err: any) {
-      console.error('Toggle error:', err);
       const errorMsg = err.response?.data?.message || 'Failed to toggle task';
       toast.error(errorMsg);
     }
@@ -207,79 +210,76 @@ const TaskList: React.FC = () => {
           </div>
         ) : (
           <div className="flex flex-col gap-0 bg-surface border border-border-subtle shadow-sm divide-y divide-border-subtle">
-            {tasks.map((task) => {
-              console.log('Rendering task:', task.id, 'is_active:', task.is_active, 'title:', task.title);
-              return (
-                <div
-                  key={task.id}
-                  onClick={() => handleToggleActive(task.id)}
-                  className={`group flex items-center justify-between p-5 hover:bg-bg-page transition-colors cursor-pointer ${task.completed ? 'opacity-50' : ''
-                    } ${task.is_active ? 'bg-primary/5 border-l-4 border-l-primary' : ''
-                    }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleToggleTask(task.id); }}
-                      disabled={loading || editingTaskId === task.id}
-                      className={`size-5 border-2 transition-colors flex items-center justify-center ${task.completed ? 'bg-primary border-primary text-white' : 'border-gray-300 hover:border-primary hover:bg-primary/10'} disabled:opacity-50`}
-                    >
-                      {task.completed && <span className="material-symbols-outlined !text-[14px]">check</span>}
-                    </button>
-                    <div className="flex flex-col flex-1">
-                      {editingTaskId === task.id ? (
-                        <input
-                          type="text"
-                          value={editingTitle}
-                          onChange={(e) => setEditingTitle(e.target.value)}
-                          onBlur={saveEdit}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') saveEdit();
-                            if (e.key === 'Escape') cancelEdit();
-                          }}
-                          className="flex-1 border border-primary px-3 py-1.5 text-base font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
-                          autoFocus
-                        />
-                      ) : (
-                        <>
-                          <div className="flex items-center gap-2">
-                            <span className={`text-text-main font-medium text-base group-hover:text-primary transition-colors ${task.completed ? 'line-through' : ''
-                              }`}>
-                              {task.title}
-                            </span>
-                            {task.is_active && (
-                              <span className="px-2 py-0.5 bg-primary text-white text-[10px] font-bold uppercase tracking-wide">
-                                Active
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-text-secondary text-xs flex items-center gap-1 mt-1">
-                            <span className="material-symbols-outlined !text-[14px]">timer</span> {task.pomodoros || 0} Pomodoro{task.pomodoros !== 1 ? 's' : ''}
+            {tasks.map((task) => (
+              <div
+                key={task.id}
+                onClick={() => handleToggleActive(task.id)}
+                className={`group flex items-center justify-between p-5 hover:bg-bg-page transition-colors cursor-pointer ${task.completed ? 'opacity-50' : ''
+                  } ${task.is_active ? 'bg-primary/5 border-l-4 border-l-primary' : ''
+                  }`}
+              >
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleToggleTask(task.id); }}
+                    disabled={loading || editingTaskId === task.id}
+                    className={`size-5 border-2 transition-colors flex items-center justify-center ${task.completed ? 'bg-primary border-primary text-white' : 'border-gray-300 hover:border-primary hover:bg-primary/10'} disabled:opacity-50`}
+                  >
+                    {task.completed && <span className="material-symbols-outlined !text-[14px]">check</span>}
+                  </button>
+                  <div className="flex flex-col flex-1">
+                    {editingTaskId === task.id ? (
+                      <input
+                        type="text"
+                        value={editingTitle}
+                        onChange={(e) => setEditingTitle(e.target.value)}
+                        onBlur={saveEdit}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') saveEdit();
+                          if (e.key === 'Escape') cancelEdit();
+                        }}
+                        className="flex-1 border border-primary px-3 py-1.5 text-base font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        autoFocus
+                      />
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-text-main font-medium text-base group-hover:text-primary transition-colors ${task.completed ? 'line-through' : ''
+                            }`}>
+                            {task.title}
                           </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); startEdit(task); }}
-                      disabled={loading || editingTaskId !== null}
-                      className="p-2 text-text-secondary hover:text-primary hover:bg-gray-100 transition-colors disabled:opacity-50 rounded"
-                    >
-                      <span className="material-symbols-outlined !text-[20px]">edit</span>
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleDeleteTask(task); }}
-                      disabled={loading || editingTaskId !== null}
-                      className="p-2 text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 rounded"
-                    >
-                      <span className="material-symbols-outlined !text-[20px]">delete</span>
-                    </button>
+                          {task.is_active && (
+                            <span className="px-2 py-0.5 bg-primary text-white text-[10px] font-bold uppercase tracking-wide">
+                              Active
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-text-secondary text-xs flex items-center gap-1 mt-1">
+                          <span className="material-symbols-outlined !text-[14px]">timer</span> {task.pomodoros || 0} Pomodoro{task.pomodoros !== 1 ? 's' : ''}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
-              );
-            })}
+
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); startEdit(task); }}
+                    disabled={loading || editingTaskId !== null}
+                    className="p-2 text-text-secondary hover:text-primary hover:bg-gray-100 transition-colors disabled:opacity-50 rounded"
+                  >
+                    <span className="material-symbols-outlined !text-[20px]">edit</span>
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDeleteTask(task); }}
+                    disabled={loading || editingTaskId !== null}
+                    className="p-2 text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 rounded"
+                  >
+                    <span className="material-symbols-outlined !text-[20px]">delete</span>
+                  </button>
+                </div>
+              </div>
+            ))}
             {tasks.length === 0 && !loading && (
               <div className="p-8 text-center text-text-secondary italic">No tasks planned. Add one above!</div>
             )}

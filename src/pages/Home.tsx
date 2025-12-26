@@ -7,14 +7,13 @@ import LiveFeed from '../components/Sidebar/LiveFeed';
 import { useTasks } from '../hooks';
 
 const Home: React.FC = () => {
-  const { tasks } = useTasks();
+  // Manage tasks state at Home level to share between components
+  const { tasks, loading, fetchTasks, toggleActive } = useTasks();
   const [currentTask, setCurrentTask] = useState("What are you working on?");
 
   // Update current task when active task changes
   useEffect(() => {
-    console.log('Home - All tasks:', tasks);
     const activeTask = tasks.find(task => task.is_active);
-    console.log('Home - Active task found:', activeTask);
     if (activeTask) {
       setCurrentTask(activeTask.title);
     } else {
@@ -33,7 +32,7 @@ const Home: React.FC = () => {
       <main className="flex-1 flex flex-col items-center overflow-y-auto py-8 px-4 md:px-8 bg-white">
         <div className="flex flex-col w-full max-w-[700px] gap-8">
           <TimerDisplay initialTask={currentTask} onTaskChange={setCurrentTask} />
-          <TaskList />
+          <TaskList sharedTasks={tasks} sharedLoading={loading} onRefresh={fetchTasks} />
         </div>
       </main>
 
