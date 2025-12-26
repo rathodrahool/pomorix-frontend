@@ -1,12 +1,28 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TimerDisplay from '../components/Timer/TimerDisplay';
 import TaskList from '../components/Tasks/TaskList';
 import StatsSidebar from '../components/Sidebar/StatsSidebar';
 import LiveFeed from '../components/Sidebar/LiveFeed';
+import { useTasks } from '../hooks';
 
 const Home: React.FC = () => {
-  const [currentTask, setCurrentTask] = useState("Review Chapter 4 Notes");
+  // Manage tasks state at Home level to share between components
+  const { tasks, loading, fetchTasks, toggleActive } = useTasks();
+  const [currentTask, setCurrentTask] = useState("What are you working on?");
+
+  // Update current task when active task changes
+  useEffect(() => {
+    const activeTask = tasks.find(task => task.is_active);
+    if (activeTask) {
+      setCurrentTask(activeTask.title);
+    } else {
+      setCurrentTask("What are you working on?");
+    }
+  }, [tasks]);
+
+  const hasActiveTask = tasks.some(task => task.is_active);
+  const hasAnyTasks = tasks.length > 0;
 
   return (
     <div className="flex flex-col xl:flex-row h-[calc(100vh-64px)] overflow-hidden">
@@ -18,8 +34,13 @@ const Home: React.FC = () => {
       {/* Main Content - Timer & Tasks */}
       <main className="flex-1 flex flex-col items-center overflow-y-auto py-8 px-4 md:px-8 bg-white">
         <div className="flex flex-col w-full max-w-[700px] gap-8">
-          <TimerDisplay initialTask={currentTask} onTaskChange={setCurrentTask} />
-          <TaskList />
+          <TimerDisplay
+            initialTask={currentTask}
+            onTaskChange={setCurrentTask}
+            hasActiveTask={hasActiveTask}
+            hasAnyTasks={hasAnyTasks}
+          />
+          <TaskList sharedTasks={tasks} sharedLoading={loading} onRefresh={fetchTasks} />
         </div>
       </main>
 
