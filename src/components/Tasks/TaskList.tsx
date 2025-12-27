@@ -27,12 +27,24 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
   const addTask = async () => {
     if (!newTaskTitle.trim()) return;
 
+    const isFirstTask = tasks.length === 0; // Check if this will be the first task
     setIsCreating(true);
     try {
       const response = await apiClient.post(API_ENDPOINTS.TASKS.CREATE, {
         title: newTaskTitle,
         estimated_pomodoros: newTaskPomodoros
       });
+
+      // If this is the first task, automatically activate it
+      if (isFirstTask && response.data.data?.id) {
+        try {
+          await apiClient.patch(API_ENDPOINTS.TASKS.TOGGLE_ACTIVE(response.data.data.id));
+        } catch (activateErr: any) {
+          console.error('Failed to auto-activate first task:', activateErr);
+          // Don't fail the whole operation if activation fails
+        }
+      }
+
       await fetchTasks();
       setNewTaskTitle('');
       setNewTaskPomodoros(1); // Reset to default
