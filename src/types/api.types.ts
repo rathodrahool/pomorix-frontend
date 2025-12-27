@@ -89,12 +89,12 @@ export interface UserData {
 
 export interface CreateTaskRequest {
     title: string;
-    pomodoros?: number;
+    estimated_pomodoros?: number;
 }
 
 export interface UpdateTaskRequest {
     title?: string;
-    pomodoros?: number;
+    estimated_pomodoros?: number;
     completed?: boolean;
     is_active?: boolean;
 }
@@ -102,7 +102,7 @@ export interface UpdateTaskRequest {
 export interface TaskResponse {
     id: string;
     title: string;
-    pomodoros: number;
+    estimated_pomodoros: number;
     completed: boolean;
     is_active: boolean;
     userId: string;

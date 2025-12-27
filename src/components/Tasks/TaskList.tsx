@@ -16,9 +16,11 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
   const loading = sharedLoading;
   const fetchTasks = onRefresh;
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskPomodoros, setNewTaskPomodoros] = useState(1);
   const [isCreating, setIsCreating] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [editingPomodoros, setEditingPomodoros] = useState(1);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<{ id: string; title: string } | null>(null);
 
@@ -27,10 +29,14 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
 
     setIsCreating(true);
     try {
-      const response = await apiClient.post(API_ENDPOINTS.TASKS.CREATE, { title: newTaskTitle });
-      await fetchTasks(); // Refresh the list
+      const response = await apiClient.post(API_ENDPOINTS.TASKS.CREATE, {
+        title: newTaskTitle,
+        estimated_pomodoros: newTaskPomodoros
+      });
+      await fetchTasks();
       setNewTaskTitle('');
-      toast.success(response.data.message); // Use backend message
+      setNewTaskPomodoros(1); // Reset to default
+      toast.success(response.data.message);
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || 'Failed to create task';
       toast.error(errorMsg);
@@ -81,22 +87,28 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
   const startEdit = (task: any) => {
     setEditingTaskId(task.id);
     setEditingTitle(task.title);
+    setEditingPomodoros(task.estimated_pomodoros || 1);
   };
 
   const cancelEdit = () => {
     setEditingTaskId(null);
     setEditingTitle('');
+    setEditingPomodoros(1);
   };
 
   const saveEdit = async () => {
     if (!editingTitle.trim() || !editingTaskId) return;
 
     try {
-      const response = await apiClient.patch(API_ENDPOINTS.TASKS.UPDATE(editingTaskId), { title: editingTitle });
+      const response = await apiClient.patch(API_ENDPOINTS.TASKS.UPDATE(editingTaskId), {
+        title: editingTitle,
+        estimated_pomodoros: editingPomodoros
+      });
       await fetchTasks();
       toast.success(response.data.message || 'Task updated successfully');
       setEditingTaskId(null);
       setEditingTitle('');
+      setEditingPomodoros(1);
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || 'Failed to update task';
       toast.error(errorMsg);
@@ -176,6 +188,16 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                 onKeyDown={(e) => e.key === 'Enter' && !isCreating && addTask()}
                 disabled={isCreating || loading}
               />
+              <input
+                type="number"
+                min="1"
+                max="20"
+                className="w-20 bg-surface border-y border-gray-300 text-text-main text-center focus:ring-0 focus:border-primary h-14 text-base font-medium transition-all"
+                value={newTaskPomodoros}
+                onChange={(e) => setNewTaskPomodoros(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
+                disabled={isCreating || loading}
+                title="Estimated Pomodoros"
+              />
               <button
                 onClick={addTask}
                 disabled={isCreating || loading || !newTaskTitle.trim()}
@@ -228,19 +250,34 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                   </button>
                   <div className="flex flex-col flex-1">
                     {editingTaskId === task.id ? (
-                      <input
-                        type="text"
-                        value={editingTitle}
-                        onChange={(e) => setEditingTitle(e.target.value)}
-                        onBlur={saveEdit}
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') saveEdit();
-                          if (e.key === 'Escape') cancelEdit();
-                        }}
-                        className="flex-1 border border-primary px-3 py-1.5 text-base font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
-                        autoFocus
-                      />
+                      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="text"
+                          value={editingTitle}
+                          onChange={(e) => setEditingTitle(e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveEdit();
+                            if (e.key === 'Escape') cancelEdit();
+                          }}
+                          className="flex-1 border border-primary px-3 py-1.5 text-base font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          autoFocus
+                        />
+                        <input
+                          type="number"
+                          min="1"
+                          max="20"
+                          value={editingPomodoros}
+                          onChange={(e) => setEditingPomodoros(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveEdit();
+                            if (e.key === 'Escape') cancelEdit();
+                          }}
+                          className="w-16 border border-primary px-2 py-1.5 text-base font-medium text-center focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          title="Pomodoros"
+                        />
+                      </div>
                     ) : (
                       <>
                         <div className="flex items-center gap-2">
@@ -255,7 +292,7 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                           )}
                         </div>
                         <span className="text-text-secondary text-xs flex items-center gap-1 mt-1">
-                          <span className="material-symbols-outlined !text-[14px]">timer</span> {task.pomodoros || 0} Pomodoro{task.pomodoros !== 1 ? 's' : ''}
+                          <span className="material-symbols-outlined !text-[14px]">timer</span> {task.estimated_pomodoros || 0} Pomodoro{task.estimated_pomodoros !== 1 ? 's' : ''}
                         </span>
                       </>
                     )}
