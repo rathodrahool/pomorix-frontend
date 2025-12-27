@@ -9,9 +9,10 @@ interface TimerDisplayProps {
   onTaskChange: (task: string) => void;
   hasActiveTask: boolean;
   hasAnyTasks: boolean;
+  onPomodoroComplete?: () => Promise<void>;
 }
 
-const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, hasActiveTask, hasAnyTasks }) => {
+const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, hasActiveTask, hasAnyTasks, onPomodoroComplete }) => {
   const [mode, setMode] = useState<TimerMode>('focus');
   const [secondsLeft, setSecondsLeft] = useState(1 * 60); // 1 min for testing
   const [isActive, setIsActive] = useState(false);
@@ -84,6 +85,11 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
           setCurrentSession(null);
           setSecondsLeft(getInitialSeconds(mode));
           completingRef.current = false; // Reset for next session
+
+          // Refresh tasks to update pomodoro count and check for task completion
+          if (onPomodoroComplete) {
+            await onPomodoroComplete();
+          }
         } catch (err: any) {
           const errorMsg = err.response?.data?.message || 'Failed to complete session';
           toast.error(errorMsg);

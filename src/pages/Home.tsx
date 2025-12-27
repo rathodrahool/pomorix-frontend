@@ -24,6 +24,11 @@ const Home: React.FC = () => {
   const hasActiveTask = tasks.some(task => task.is_active);
   const hasAnyTasks = tasks.length > 0;
 
+  const handlePomodoroComplete = async () => {
+    await fetchTasks(); // Refresh to get updated completed_pomodoros count
+    // Backend should handle task completion and auto-activation of next task
+  };
+
   return (
     <div className="flex flex-col xl:flex-row h-[calc(100vh-64px)] overflow-hidden">
       {/* Left Sidebar - Stats (Large screens only) */}
@@ -39,6 +44,7 @@ const Home: React.FC = () => {
             onTaskChange={setCurrentTask}
             hasActiveTask={hasActiveTask}
             hasAnyTasks={hasAnyTasks}
+            onPomodoroComplete={handlePomodoroComplete}
           />
           <TaskList sharedTasks={tasks} sharedLoading={loading} onRefresh={fetchTasks} />
         </div>

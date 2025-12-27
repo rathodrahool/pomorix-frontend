@@ -247,10 +247,16 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
             {tasks.map((task) => (
               <div
                 key={task.id}
-                onClick={() => handleToggleActive(task.id)}
-                className={`group flex items-center justify-between p-5 hover:bg-bg-page transition-colors cursor-pointer ${task.is_completed ? 'opacity-50' : ''
-                  } ${task.is_active ? 'bg-orange-50/30 border-l-4 !border-l-[#F15025]' : ''
-                  }`}
+                onClick={() => {
+                  if (!task.is_active && !task.is_completed) {
+                    toast.error('🔒 Complete the active task first');
+                    return;
+                  }
+                }}
+                className={`group flex items-center justify-between p-5 transition-colors ${task.is_completed ? 'opacity-50' : ''
+                  } ${task.is_active ? 'bg-orange-50/30 border-l-4 !border-l-[#F15025] hover:bg-orange-50/40 cursor-pointer' : ''
+                  } ${!task.is_active && !task.is_completed ? 'opacity-60 cursor-not-allowed hover:opacity-80' : ''
+                  } ${task.is_completed ? 'hover:bg-bg-page cursor-default' : ''}`}
               >
                 <div className="flex items-center gap-4">
                   <button
@@ -293,13 +299,18 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                     ) : (
                       <>
                         <div className="flex items-center gap-2">
-                          <span className={`text-text-main font-medium text-base group-hover:text-primary transition-colors ${task.is_completed ? 'line-through' : ''
-                            }`}>
+                          <span className={`text-text-main font-medium text-base transition-colors ${task.is_completed ? 'line-through' : ''
+                            } ${task.is_active ? 'group-hover:text-primary' : ''}`}>
                             {task.title}
                           </span>
                           {task.is_active && (
                             <span className="px-2 py-0.5 bg-primary text-white text-[10px] font-bold uppercase tracking-wide">
                               Active
+                            </span>
+                          )}
+                          {!task.is_active && !task.is_completed && (
+                            <span className="material-symbols-outlined !text-[16px] text-text-secondary" title="Complete active task first">
+                              lock
                             </span>
                           )}
                         </div>
@@ -327,12 +338,14 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                     <span className="material-symbols-outlined !text-[20px]">delete</span>
                   </button>
                 </div>
-              </div>
+              </div >
             ))}
-            {tasks.length === 0 && !loading && (
-              <div className="p-8 text-center text-text-secondary italic">No tasks planned. Add one above!</div>
-            )}
-          </div>
+            {
+              tasks.length === 0 && !loading && (
+                <div className="p-8 text-center text-text-secondary italic">No tasks planned. Add one above!</div>
+              )
+            }
+          </div >
         )}
       </div >
     </>
