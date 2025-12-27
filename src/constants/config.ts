@@ -14,9 +14,9 @@ export const APP_CONFIG = {
     name: 'Pomorix',
     version: '1.0.0',
     timerDurations: {
-        focus: 25 * 60, // 25 minutes in seconds
-        shortBreak: 5 * 60, // 5 minutes
-        longBreak: 15 * 60, // 15 minutes
+        focus: 1 * 60, // 1 minute in seconds (testing)
+        shortBreak: 1 * 60, // 1 minute (testing)
+        longBreak: 1 * 60, // 1 minute (testing)
     },
     pomodorosUntilLongBreak: 4,
 } as const;

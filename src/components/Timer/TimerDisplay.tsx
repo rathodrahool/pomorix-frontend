@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { TimerMode } from '../../types';
 import { pomodoroService } from '../../services';
@@ -14,10 +13,11 @@ interface TimerDisplayProps {
 
 const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, hasActiveTask, hasAnyTasks }) => {
   const [mode, setMode] = useState<TimerMode>('focus');
-  const [secondsLeft, setSecondsLeft] = useState(25 * 60);
+  const [secondsLeft, setSecondsLeft] = useState(1 * 60); // 1 min for testing
   const [isActive, setIsActive] = useState(false);
   const [taskInput, setTaskInput] = useState(initialTask);
   const [currentSession, setCurrentSession] = useState<ActiveSessionData | null>(null);
+  const completingRef = useRef(false); // Prevent duplicate completion calls
 
   // Fetch current session on mount to sync with backend
   useEffect(() => {
@@ -50,10 +50,10 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
 
   const getInitialSeconds = useCallback((m: TimerMode) => {
     switch (m) {
-      case 'focus': return 25 * 60;
-      case 'shortBreak': return 5 * 60;
-      case 'longBreak': return 15 * 60;
-      default: return 25 * 60;
+      case 'focus': return 1 * 60; // 1 min for testing
+      case 'shortBreak': return 1 * 60; // 1 min for testing
+      case 'longBreak': return 1 * 60; // 1 min for testing
+      default: return 1 * 60; // 1 min for testing
     }
   }, []);
 
@@ -61,6 +61,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
     setMode(newMode);
     setSecondsLeft(getInitialSeconds(newMode));
     setIsActive(false);
+    completingRef.current = false; // Reset completion flag
   };
 
   useEffect(() => {
@@ -69,8 +70,9 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
       interval = setInterval(() => {
         setSecondsLeft((s) => s - 1);
       }, 1000);
-    } else if (secondsLeft === 0 && currentSession) {
-      // Timer hit zero - complete the session
+    } else if (secondsLeft === 0 && currentSession && !completingRef.current) {
+      // Timer hit zero - complete the session (only once)
+      completingRef.current = true; // Set flag immediately to prevent duplicate calls
       setIsActive(false);
 
       const completeSessionAsync = async () => {
@@ -81,9 +83,11 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
           // Reset state
           setCurrentSession(null);
           setSecondsLeft(getInitialSeconds(mode));
+          completingRef.current = false; // Reset for next session
         } catch (err: any) {
           const errorMsg = err.response?.data?.message || 'Failed to complete session';
           toast.error(errorMsg);
+          completingRef.current = false; // Reset on error
         }
       };
 
@@ -109,7 +113,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
     try {
       const session = await pomodoroService.startSession(
         getInitialSeconds(mode),  // focus duration
-        mode === 'shortBreak' ? 5 * 60 : 15 * 60  // break duration
+        1 * 60  // 1 min break for testing
       );
 
       setCurrentSession(session);
