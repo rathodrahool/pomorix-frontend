@@ -232,28 +232,15 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
       </div>
 
       {/* Actions */}
-      <div className="flex justify-center w-full gap-4">
-        <button
-          onClick={() => { setSecondsLeft(getInitialSeconds(mode)); setIsActive(false); }}
-          className="flex h-14 w-14 items-center justify-center bg-bg-page hover:bg-white transition-all text-text-secondary border border-border-subtle shadow-sharp active:translate-y-[2px] active:shadow-none"
-          title="Reset"
-        >
-          <span className="material-symbols-outlined !text-[24px]">restart_alt</span>
-        </button>
+      <div className="flex justify-center w-full">
         <button
           onClick={handleStartPause}
           disabled={!hasActiveTask}
-          className={`group flex min-w-[200px] items-center justify-center h-14 px-8 ${isActive ? 'bg-white text-primary border-primary' : 'bg-primary text-white border-primary-dark'} hover:opacity-90 transition-all gap-3 text-lg font-bold border shadow-sharp active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed`}
+          className={`group flex min-w-[220px] items-center justify-center h-16 px-10 ${isActive ? 'bg-white text-primary border-primary' : 'bg-primary text-white border-primary-dark'} hover:opacity-90 transition-all gap-3 text-lg font-bold border-2 shadow-sharp active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed`}
           title={!hasAnyTasks ? 'Create a task first' : !hasActiveTask ? 'Select a task to start' : ''}
         >
           <span className="material-symbols-outlined !text-[28px]">{isActive ? 'pause' : 'play_arrow'}</span>
           <span>{isActive ? 'Pause Focus' : 'Start Focus'}</span>
-        </button>
-        <button
-          className="flex h-14 w-14 items-center justify-center bg-bg-page hover:bg-white transition-all text-text-secondary border border-border-subtle shadow-sharp active:translate-y-[2px] active:shadow-none"
-          title="Skip"
-        >
-          <span className="material-symbols-outlined !text-[24px]">skip_next</span>
         </button>
       </div>
 

@@ -27,7 +27,10 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
   const addTask = async () => {
     if (!newTaskTitle.trim()) return;
 
-    const isFirstTask = tasks.length === 0; // Check if this will be the first task
+    // Check if this will be the first incomplete task
+    const hasIncomplete = tasks.some(t => !t.is_completed);
+    const shouldAutoActivate = !hasIncomplete; // Auto-activate if no incomplete tasks exist
+
     setIsCreating(true);
     try {
       const response = await apiClient.post(API_ENDPOINTS.TASKS.CREATE, {
@@ -35,12 +38,12 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
         estimated_pomodoros: newTaskPomodoros
       });
 
-      // If this is the first task, automatically activate it
-      if (isFirstTask && response.data.data?.id) {
+      // If there are no incomplete tasks, automatically activate the new one
+      if (shouldAutoActivate && response.data.data?.id) {
         try {
           await apiClient.patch(API_ENDPOINTS.TASKS.TOGGLE_ACTIVE(response.data.data.id));
         } catch (activateErr: any) {
-          console.error('Failed to auto-activate first task:', activateErr);
+          console.error('Failed to auto-activate task:', activateErr);
           // Don't fail the whole operation if activation fails
         }
       }

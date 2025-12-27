@@ -1,8 +1,26 @@
 
-import React from 'react';
+import React, { useState, createContext, useContext } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 
-const Header: React.FC = () => {
+// Focus Mode Context
+interface FocusModeContextType {
+  isFocusMode: boolean;
+  toggleFocusMode: () => void;
+}
+
+const FocusModeContext = createContext<FocusModeContextType>({
+  isFocusMode: true,
+  toggleFocusMode: () => { },
+});
+
+export const useFocusMode = () => useContext(FocusModeContext);
+
+interface HeaderProps {
+  isFocusMode: boolean;
+  toggleFocusMode: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ isFocusMode, toggleFocusMode }) => {
   const location = useLocation();
 
   return (
@@ -20,7 +38,20 @@ const Header: React.FC = () => {
         <Link to="/settings" className={`text-sm font-medium transition-colors ${location.pathname === '/settings' ? 'text-white border-b-2 border-white pb-0.5' : 'text-white/70 hover:text-white'}`}>Settings</Link>
       </nav>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={toggleFocusMode}
+          className={`flex items-center gap-2 px-4 py-1.5 text-sm font-bold transition-all border ${isFocusMode
+              ? 'bg-white text-primary border-white hover:bg-white/90'
+              : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
+            }`}
+          title={isFocusMode ? 'Exit Focus Mode' : 'Enter Focus Mode'}
+        >
+          <span className="material-symbols-outlined !text-[18px]">
+            {isFocusMode ? 'visibility_off' : 'visibility'}
+          </span>
+          <span>FOCUS MODE</span>
+        </button>
         <div className="hidden sm:block bg-white/10 hover:bg-white/20 transition-colors px-3 py-1 text-white text-sm font-bold border border-white/20 cursor-pointer">
           🔥 12 Day Streak
         </div>
@@ -34,22 +65,30 @@ const Header: React.FC = () => {
 };
 
 const Layout: React.FC = () => {
+  const [isFocusMode, setIsFocusMode] = useState(true); // Default: ON (minimalist)
+
+  const toggleFocusMode = () => {
+    setIsFocusMode(prev => !prev);
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-bg-page">
-      <Header />
-      <main className="flex-1">
-        <Outlet />
-      </main>
-      <footer className="w-full border-t border-primary/20 bg-bg-page py-4 px-6 text-center">
-        <div className="flex items-center justify-center gap-2 text-text-secondary text-sm font-display">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full bg-green-500 opacity-75"></span>
-            <span className="relative inline-flex h-2 w-2 bg-green-600"></span>
-          </span>
-          <span><strong className="text-text-main">1,240</strong> people are focusing right now.</span>
-        </div>
-      </footer>
-    </div>
+    <FocusModeContext.Provider value={{ isFocusMode, toggleFocusMode }}>
+      <div className="min-h-screen flex flex-col bg-bg-page">
+        <Header isFocusMode={isFocusMode} toggleFocusMode={toggleFocusMode} />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <footer className="w-full border-t border-primary/20 bg-bg-page py-4 px-6 text-center">
+          <div className="flex items-center justify-center gap-2 text-text-secondary text-sm font-display">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full bg-green-500 opacity-75"></span>
+              <span className="relative inline-flex h-2 w-2 bg-green-600"></span>
+            </span>
+            <span><strong className="text-text-main">1,240</strong> people are focusing right now.</span>
+          </div>
+        </footer>
+      </div>
+    </FocusModeContext.Provider>
   );
 };
 
