@@ -47,7 +47,7 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
 
   const handleToggleTask = async (id: string) => {
     const task = tasks.find(t => t.id === id);
-    const wasCompleted = task?.completed;
+    const wasCompleted = task?.is_completed;
 
     try {
       const response = await apiClient.patch(API_ENDPOINTS.TASKS.TOGGLE_COMPLETE(id));
@@ -116,7 +116,7 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
   };
 
   const clearFinished = async () => {
-    const completedTasks = tasks.filter(t => t.completed);
+    const completedTasks = tasks.filter(t => t.is_completed);
     if (completedTasks.length === 0) return;
 
     try {
@@ -218,7 +218,7 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
           </h3>
           <button
             onClick={clearFinished}
-            disabled={loading || !tasks.some(t => t.completed)}
+            disabled={loading || !tasks.some(t => t.is_completed)}
             className="text-text-secondary text-xs font-medium hover:text-primary hover:underline uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Clear finished
@@ -236,7 +236,7 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
               <div
                 key={task.id}
                 onClick={() => handleToggleActive(task.id)}
-                className={`group flex items-center justify-between p-5 hover:bg-bg-page transition-colors cursor-pointer ${task.completed ? 'opacity-50' : ''
+                className={`group flex items-center justify-between p-5 hover:bg-bg-page transition-colors cursor-pointer ${task.is_completed ? 'opacity-50' : ''
                   } ${task.is_active ? 'bg-orange-50/30 border-l-4 !border-l-[#F15025]' : ''
                   }`}
               >
@@ -244,9 +244,9 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                   <button
                     onClick={(e) => { e.stopPropagation(); handleToggleTask(task.id); }}
                     disabled={loading || editingTaskId === task.id}
-                    className={`size-5 border-2 transition-colors flex items-center justify-center ${task.completed ? 'bg-primary border-primary text-white' : 'border-gray-300 hover:border-primary hover:bg-primary/10'} disabled:opacity-50`}
+                    className={`size-5 border-2 transition-colors flex items-center justify-center ${task.is_completed ? 'bg-primary border-primary text-white' : 'border-gray-300 hover:border-primary hover:bg-primary/10'} disabled:opacity-50`}
                   >
-                    {task.completed && <span className="material-symbols-outlined !text-[14px]">check</span>}
+                    {task.is_completed && <span className="material-symbols-outlined !text-[14px]">check</span>}
                   </button>
                   <div className="flex flex-col flex-1">
                     {editingTaskId === task.id ? (
@@ -281,7 +281,7 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                     ) : (
                       <>
                         <div className="flex items-center gap-2">
-                          <span className={`text-text-main font-medium text-base group-hover:text-primary transition-colors ${task.completed ? 'line-through' : ''
+                          <span className={`text-text-main font-medium text-base group-hover:text-primary transition-colors ${task.is_completed ? 'line-through' : ''
                             }`}>
                             {task.title}
                           </span>
@@ -292,7 +292,7 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                           )}
                         </div>
                         <span className="text-text-secondary text-xs flex items-center gap-1 mt-1">
-                          <span className="material-symbols-outlined !text-[14px]">timer</span> {task.estimated_pomodoros || 0} Pomodoro{task.estimated_pomodoros !== 1 ? 's' : ''}
+                          <span className="material-symbols-outlined !text-[14px]">timer</span> {task.completed_pomodoros || 0}/{task.estimated_pomodoros || 0} Pomodoro{task.estimated_pomodoros !== 1 ? 's' : ''}
                         </span>
                       </>
                     )}
