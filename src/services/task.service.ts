@@ -16,7 +16,13 @@ export const taskService = {
      */
     async getTasks(): Promise<TaskResponse[]> {
         const response = await apiClient.get<ApiResponse<TaskResponse[]>>(
-            API_ENDPOINTS.TASKS.LIST
+            API_ENDPOINTS.TASKS.LIST,
+            {
+                params: {
+                    sort_by: 'created_at',
+                    sort_order: 'asc'
+                }
+            }
         );
         return response.data.data;
     },
