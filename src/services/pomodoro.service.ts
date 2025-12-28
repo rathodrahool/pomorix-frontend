@@ -6,6 +6,7 @@ import type {
     CurrentSessionResponse,
     ActiveSessionData,
 } from '../types';
+import { settingsService } from './settings.service';
 
 /**
  * Pomodoro Session Service
@@ -15,14 +16,31 @@ export const pomodoroService = {
     /**
      * Start a new Pomodoro session
      * Requires an active task to be selected
+     * Automatically fetches user settings for durations
      */
     async startSession(
-        focusDuration: number = 1500,  // Default: 25 minutes
-        breakDuration: number = 300     // Default: 5 minutes
+        focusDuration?: number,  // Optional override
+        breakDuration?: number   // Optional override
     ): Promise<PomodoroSessionResponse> {
+        // If durations not provided, fetch from user settings
+        let focus = focusDuration;
+        let shortBreak = breakDuration;
+
+        if (!focus || !shortBreak) {
+            try {
+                const settings = await settingsService.getUserSettings();
+                focus = focus || settings.pomodoro_duration * 60; // Convert minutes to seconds
+                shortBreak = shortBreak || settings.short_break * 60; // Convert minutes to seconds
+            } catch (err) {
+                // Fallback to defaults if settings fetch fails
+                focus = focus || 25 * 60; // 25 minutes
+                shortBreak = shortBreak || 5 * 60; // 5 minutes
+            }
+        }
+
         const requestData: StartPomodoroRequest = {
-            focus_duration_seconds: focusDuration,
-            break_duration_seconds: breakDuration,
+            focus_duration_seconds: focus,
+            break_duration_seconds: shortBreak,
         };
 
         const response = await apiClient.post<StartPomodoroResponse>(

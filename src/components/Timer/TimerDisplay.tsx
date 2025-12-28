@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { TimerMode } from '../../types';
-import { pomodoroService } from '../../services';
-import type { PomodoroSessionResponse, ActiveSessionData } from '../../types';
+import { pomodoroService, settingsService } from '../../services';
+import type { PomodoroSessionResponse, ActiveSessionData, UserSettings } from '../../types';
 
 interface TimerDisplayProps {
   initialTask: string;
@@ -14,16 +14,23 @@ interface TimerDisplayProps {
 
 const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, hasActiveTask, hasAnyTasks, onPomodoroComplete }) => {
   const [mode, setMode] = useState<TimerMode>('focus');
-  const [secondsLeft, setSecondsLeft] = useState(1 * 60); // 1 min for testing
+  const [secondsLeft, setSecondsLeft] = useState(25 * 60); // Default: 25 minutes
   const [isActive, setIsActive] = useState(false);
   const [taskInput, setTaskInput] = useState(initialTask);
   const [currentSession, setCurrentSession] = useState<ActiveSessionData | null>(null);
+  const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
   const completingRef = useRef(false); // Prevent duplicate completion calls
 
-  // Fetch current session on mount to sync with backend
+  // Fetch user settings and current session on mount
   useEffect(() => {
-    const fetchSession = async () => {
+    const fetchData = async () => {
       try {
+        // Fetch settings
+        const settings = await settingsService.getUserSettings();
+        setUserSettings(settings);
+        setSecondsLeft(settings.pomodoro_duration * 60); // Set initial timer from settings
+
+        // Fetch current session
         const session = await pomodoroService.getCurrentSession();
         if (session) {
           setCurrentSession(session);
@@ -31,10 +38,10 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
           setIsActive(!session.is_paused);
         }
       } catch (err) {
-        // Silent fail - no active session is normal
+        // Silent fail - use defaults if settings unavailable
       }
     };
-    fetchSession();
+    fetchData();
   }, []);
 
   // Auto-pause if active task is removed
@@ -50,13 +57,24 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
   }, [initialTask]);
 
   const getInitialSeconds = useCallback((m: TimerMode) => {
-    switch (m) {
-      case 'focus': return 1 * 60; // 1 min for testing
-      case 'shortBreak': return 1 * 60; // 1 min for testing
-      case 'longBreak': return 1 * 60; // 1 min for testing
-      default: return 1 * 60; // 1 min for testing
+    if (!userSettings) {
+      // Fallback defaults if settings not loaded
+      switch (m) {
+        case 'focus': return 25 * 60;
+        case 'shortBreak': return 5 * 60;
+        case 'longBreak': return 15 * 60;
+        default: return 25 * 60;
+      }
     }
-  }, []);
+
+    // Use user settings
+    switch (m) {
+      case 'focus': return userSettings.pomodoro_duration * 60;
+      case 'shortBreak': return userSettings.short_break * 60;
+      case 'longBreak': return userSettings.long_break * 60;
+      default: return userSettings.pomodoro_duration * 60;
+    }
+  }, [userSettings]);
 
   const changeMode = (newMode: TimerMode) => {
     setMode(newMode);
@@ -117,10 +135,8 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
     if (!hasActiveTask) return;
 
     try {
-      const session = await pomodoroService.startSession(
-        getInitialSeconds(mode),  // focus duration
-        1 * 60  // 1 min break for testing
-      );
+      // Service will automatically fetch and use user settings
+      const session = await pomodoroService.startSession();
 
       setCurrentSession(session);
       setIsActive(true);
