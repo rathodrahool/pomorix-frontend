@@ -5,11 +5,13 @@ import TaskList from '../components/Tasks/TaskList';
 import StatsSidebar from '../components/Sidebar/StatsSidebar';
 import LiveFeed from '../components/Sidebar/LiveFeed';
 import { useTasks } from '../hooks';
+import { useFocusMode } from '../components/Layout';
 
 const Home: React.FC = () => {
   // Manage tasks state at Home level to share between components
   const { tasks, loading, fetchTasks, toggleActive } = useTasks();
   const [currentTask, setCurrentTask] = useState("What are you working on?");
+  const { isFocusMode } = useFocusMode(); // Get focus mode state
 
   // Update current task when active task changes
   useEffect(() => {
@@ -24,28 +26,44 @@ const Home: React.FC = () => {
   const hasActiveTask = tasks.some(task => task.is_active);
   const hasAnyTasks = tasks.length > 0;
 
+  const handlePomodoroComplete = async () => {
+    await fetchTasks(); // Refresh to get updated completed_pomodoros count
+    // Backend should handle task completion and auto-activation of next task
+  };
+
   return (
     <div className="flex flex-col xl:flex-row h-[calc(100vh-64px)] overflow-hidden">
-      {/* Left Sidebar - Stats (Large screens only) */}
-      <aside className="hidden xl:block w-[300px] border-r border-border-subtle bg-bg-page overflow-y-auto shrink-0">
+      {/* Left Sidebar - Stats (Animated slide from left) */}
+      <aside
+        className={`hidden xl:flex flex-col w-[300px] border-r border-border-subtle bg-bg-page overflow-y-auto shrink-0 transition-all duration-300 ease-in-out ${isFocusMode
+            ? 'max-w-0 opacity-0 -ml-[300px]'
+            : 'max-w-[300px] opacity-100 ml-0'
+          }`}
+      >
         <StatsSidebar />
       </aside>
 
-      {/* Main Content - Timer & Tasks */}
-      <main className="flex-1 flex flex-col items-center overflow-y-auto py-8 px-4 md:px-8 bg-white">
+      {/* Main Content - Timer & Tasks (Smooth width transition) */}
+      <main className="flex-1 flex flex-col items-center overflow-y-auto py-8 px-4 md:px-8 bg-white transition-all duration-300 ease-in-out">
         <div className="flex flex-col w-full max-w-[700px] gap-8">
           <TimerDisplay
             initialTask={currentTask}
             onTaskChange={setCurrentTask}
             hasActiveTask={hasActiveTask}
             hasAnyTasks={hasAnyTasks}
+            onPomodoroComplete={handlePomodoroComplete}
           />
           <TaskList sharedTasks={tasks} sharedLoading={loading} onRefresh={fetchTasks} />
         </div>
       </main>
 
-      {/* Right Sidebar - Live Feed */}
-      <aside className="hidden lg:flex w-[350px] flex-col border-l border-border-subtle bg-bg-page overflow-y-auto shrink-0">
+      {/* Right Sidebar - Live Feed (Animated slide from right) */}
+      <aside
+        className={`hidden lg:flex flex-col w-[350px] border-l border-border-subtle bg-bg-page overflow-y-auto shrink-0 transition-all duration-300 ease-in-out ${isFocusMode
+            ? 'max-w-0 opacity-0 -mr-[350px]'
+            : 'max-w-[350px] opacity-100 mr-0'
+          }`}
+      >
         <LiveFeed />
       </aside>
     </div>

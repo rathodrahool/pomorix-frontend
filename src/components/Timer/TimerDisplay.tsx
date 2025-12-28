@@ -1,19 +1,41 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import toast from 'react-hot-toast';
 import { TimerMode } from '../../types';
+import { pomodoroService } from '../../services';
+import type { PomodoroSessionResponse, ActiveSessionData } from '../../types';
 
 interface TimerDisplayProps {
   initialTask: string;
   onTaskChange: (task: string) => void;
   hasActiveTask: boolean;
   hasAnyTasks: boolean;
+  onPomodoroComplete?: () => Promise<void>;
 }
 
-const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, hasActiveTask, hasAnyTasks }) => {
+const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, hasActiveTask, hasAnyTasks, onPomodoroComplete }) => {
   const [mode, setMode] = useState<TimerMode>('focus');
-  const [secondsLeft, setSecondsLeft] = useState(25 * 60);
+  const [secondsLeft, setSecondsLeft] = useState(1 * 60); // 1 min for testing
   const [isActive, setIsActive] = useState(false);
   const [taskInput, setTaskInput] = useState(initialTask);
+  const [currentSession, setCurrentSession] = useState<ActiveSessionData | null>(null);
+  const completingRef = useRef(false); // Prevent duplicate completion calls
+
+  // Fetch current session on mount to sync with backend
+  useEffect(() => {
+    const fetchSession = async () => {
+      try {
+        const session = await pomodoroService.getCurrentSession();
+        if (session) {
+          setCurrentSession(session);
+          setSecondsLeft(session.remaining_seconds);
+          setIsActive(!session.is_paused);
+        }
+      } catch (err) {
+        // Silent fail - no active session is normal
+      }
+    };
+    fetchSession();
+  }, []);
 
   // Auto-pause if active task is removed
   useEffect(() => {
@@ -29,10 +51,10 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
 
   const getInitialSeconds = useCallback((m: TimerMode) => {
     switch (m) {
-      case 'focus': return 25 * 60;
-      case 'shortBreak': return 5 * 60;
-      case 'longBreak': return 15 * 60;
-      default: return 25 * 60;
+      case 'focus': return 1 * 60; // 1 min for testing
+      case 'shortBreak': return 1 * 60; // 1 min for testing
+      case 'longBreak': return 1 * 60; // 1 min for testing
+      default: return 1 * 60; // 1 min for testing
     }
   }, []);
 
@@ -40,6 +62,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
     setMode(newMode);
     setSecondsLeft(getInitialSeconds(newMode));
     setIsActive(false);
+    completingRef.current = false; // Reset completion flag
   };
 
   useEffect(() => {
@@ -48,13 +71,36 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
       interval = setInterval(() => {
         setSecondsLeft((s) => s - 1);
       }, 1000);
-    } else if (secondsLeft === 0) {
+    } else if (secondsLeft === 0 && currentSession && !completingRef.current) {
+      // Timer hit zero - complete the session (only once)
+      completingRef.current = true; // Set flag immediately to prevent duplicate calls
       setIsActive(false);
-      // Play sound or notify
-      alert('Time is up!');
+
+      const completeSessionAsync = async () => {
+        try {
+          await pomodoroService.completeSession();
+          toast.success('🎉 Pomodoro completed! Great work!', { duration: 4000 });
+
+          // Reset state
+          setCurrentSession(null);
+          setSecondsLeft(getInitialSeconds(mode));
+          completingRef.current = false; // Reset for next session
+
+          // Refresh tasks to update pomodoro count and check for task completion
+          if (onPomodoroComplete) {
+            await onPomodoroComplete();
+          }
+        } catch (err: any) {
+          const errorMsg = err.response?.data?.message || 'Failed to complete session';
+          toast.error(errorMsg);
+          completingRef.current = false; // Reset on error
+        }
+      };
+
+      completeSessionAsync();
     }
     return () => clearInterval(interval);
-  }, [isActive, secondsLeft]);
+  }, [isActive, secondsLeft, currentSession, mode, getInitialSeconds]);
 
   const formatTime = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);
@@ -66,6 +112,60 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
   };
 
   const { mins, secs } = formatTime(secondsLeft);
+
+  const startPomodoroSession = async () => {
+    if (!hasActiveTask) return;
+
+    try {
+      const session = await pomodoroService.startSession(
+        getInitialSeconds(mode),  // focus duration
+        1 * 60  // 1 min break for testing
+      );
+
+      setCurrentSession(session);
+      setIsActive(true);
+      toast.success(`Pomodoro started for "${session.task_title}"`);
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || 'Failed to start Pomodoro session';
+      toast.error(errorMsg);
+    }
+  };
+
+  const handleStartPause = async () => {
+    if (!hasActiveTask) return;
+
+    if (!isActive && !currentSession) {
+      // Starting fresh - call start API
+      startPomodoroSession();
+    } else if (isActive && currentSession) {
+      // Currently running - pause it
+      try {
+        await pomodoroService.pauseSession();
+        setIsActive(false);
+        toast.success('Session paused');
+      } catch (err: any) {
+        const errorMsg = err.response?.data?.message || 'Failed to pause session';
+        toast.error(errorMsg);
+      }
+    } else if (!isActive && currentSession) {
+      // Currently paused - resume it
+      try {
+        await pomodoroService.resumeSession();
+
+        // Fetch fresh session data to get accurate remaining_seconds
+        const session = await pomodoroService.getCurrentSession();
+        if (session) {
+          setCurrentSession(session);
+          setSecondsLeft(session.remaining_seconds);
+          setIsActive(true);
+          toast.success('Session resumed');
+        }
+      } catch (err: any) {
+        const errorMsg = err.response?.data?.message || 'Failed to resume session';
+        toast.error(errorMsg);
+      }
+    }
+  };
 
   return (
     <section className="flex flex-col items-center bg-white p-8 border border-border-subtle shadow-sharp w-full">
@@ -132,28 +232,15 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
       </div>
 
       {/* Actions */}
-      <div className="flex justify-center w-full gap-4">
+      <div className="flex justify-center w-full">
         <button
-          onClick={() => { setSecondsLeft(getInitialSeconds(mode)); setIsActive(false); }}
-          className="flex h-14 w-14 items-center justify-center bg-bg-page hover:bg-white transition-all text-text-secondary border border-border-subtle shadow-sharp active:translate-y-[2px] active:shadow-none"
-          title="Reset"
-        >
-          <span className="material-symbols-outlined !text-[24px]">restart_alt</span>
-        </button>
-        <button
-          onClick={() => !hasActiveTask ? null : setIsActive(!isActive)}
+          onClick={handleStartPause}
           disabled={!hasActiveTask}
-          className={`group flex min-w-[200px] items-center justify-center h-14 px-8 ${isActive ? 'bg-white text-primary border-primary' : 'bg-primary text-white border-primary-dark'} hover:opacity-90 transition-all gap-3 text-lg font-bold border shadow-sharp active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed`}
+          className={`group flex min-w-[220px] items-center justify-center h-16 px-10 ${isActive ? 'bg-white text-primary border-primary' : 'bg-primary text-white border-primary-dark'} hover:opacity-90 transition-all gap-3 text-lg font-bold border-2 shadow-sharp active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed`}
           title={!hasAnyTasks ? 'Create a task first' : !hasActiveTask ? 'Select a task to start' : ''}
         >
           <span className="material-symbols-outlined !text-[28px]">{isActive ? 'pause' : 'play_arrow'}</span>
           <span>{isActive ? 'Pause Focus' : 'Start Focus'}</span>
-        </button>
-        <button
-          className="flex h-14 w-14 items-center justify-center bg-bg-page hover:bg-white transition-all text-text-secondary border border-border-subtle shadow-sharp active:translate-y-[2px] active:shadow-none"
-          title="Skip"
-        >
-          <span className="material-symbols-outlined !text-[24px]">skip_next</span>
         </button>
       </div>
 

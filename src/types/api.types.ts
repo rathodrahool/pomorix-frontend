@@ -22,8 +22,8 @@ export interface ApiError {
 export interface PaginationParams {
     page?: number;
     limit?: number;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
+    sort_by?: string;
+    sort_order?: 'asc' | 'desc';
 }
 
 export interface PaginatedResponse<T> {
@@ -89,21 +89,22 @@ export interface UserData {
 
 export interface CreateTaskRequest {
     title: string;
-    pomodoros?: number;
+    estimated_pomodoros?: number;
 }
 
 export interface UpdateTaskRequest {
     title?: string;
-    pomodoros?: number;
-    completed?: boolean;
+    estimated_pomodoros?: number;
+    is_completed?: boolean;
     is_active?: boolean;
 }
 
 export interface TaskResponse {
     id: string;
     title: string;
-    pomodoros: number;
-    completed: boolean;
+    estimated_pomodoros: number;
+    completed_pomodoros: number;
+    is_completed: boolean;
     is_active: boolean;
     userId: string;
     createdAt: string;
@@ -183,4 +184,54 @@ export interface LiveUserResponse {
 export interface UpdateStatusRequest {
     status: 'focusing' | 'break' | 'done';
     message?: string;
+}
+
+// ==================== Pomodoro Session API Types ====================
+
+export type PomodoroSessionState = 'FOCUS' | 'BREAK' | 'COMPLETED' | 'ABORTED';
+
+export interface StartPomodoroRequest {
+    focus_duration_seconds: number;  // Min: 60, Max: 7200 (1 min - 2 hours)
+    break_duration_seconds: number;  // Min: 60, Max: 1800 (1 min - 30 min)
+}
+
+export interface PomodoroSessionResponse {
+    session_id: string;
+    task_id: string;
+    task_title: string;
+    state: PomodoroSessionState;
+    focus_duration_seconds: number;
+    break_duration_seconds: number;
+    started_at: string;
+}
+
+export interface StartPomodoroResponse {
+    statusCode: number;
+    message: string;
+    data: PomodoroSessionResponse;
+}
+
+// Current session types
+export interface ActiveSessionData {
+    session_id: string;
+    task_id: string;
+    task_title: string;
+    state: PomodoroSessionState;
+    focus_duration_seconds: number;
+    break_duration_seconds: number;
+    started_at: string;
+    paused_at: string | null;
+    is_paused: boolean;
+    remaining_seconds: number;  // Auto-calculated by server
+    elapsed_seconds: number;    // Auto-calculated by server
+}
+
+export interface NoSessionData {
+    active: false;
+}
+
+export interface CurrentSessionResponse {
+    statusCode: number;
+    message: string;
+    data: ActiveSessionData | NoSessionData;
 }
