@@ -172,17 +172,36 @@ const Settings: React.FC = () => {
           <div className="bg-white p-6 shadow-sharp border border-border-subtle">
             <div className="flex flex-col gap-4">
               <div className="flex w-full items-center justify-between">
-                <div className="flex flex-col">
+                <div className="flex flex-col flex-1">
                   <p className="text-text-main text-base font-medium">Pomodoro Duration</p>
-                  <p className="text-text-secondary text-xs mt-1">Focus interval length in minutes</p>
+                  <p className="text-text-secondary text-xs mt-1">Focus interval (30 min - 12 hours)</p>
                 </div>
-                <div className="bg-bg-page px-3 py-1 text-sm font-bold text-text-main min-w-[3rem] text-center border border-border-subtle">{pomodoroDuration}</div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="30"
+                    max="720"
+                    value={pomodoroDuration}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      if (val >= 30 && val <= 720) setPomodoroDuration(val);
+                    }}
+                    onBlur={(e) => {
+                      const val = Number(e.target.value);
+                      if (val < 30) setPomodoroDuration(30);
+                      if (val > 720) setPomodoroDuration(720);
+                    }}
+                    disabled={saving}
+                    className="w-20 px-3 py-1.5 text-sm font-bold text-text-main text-center border border-border-subtle focus:border-primary focus:outline-none"
+                  />
+                  <span className="text-text-secondary text-xs font-medium">min</span>
+                </div>
               </div>
               <div className="flex h-6 w-full items-center">
                 <input
                   className="w-full h-2 bg-border-subtle appearance-none cursor-pointer accent-primary"
-                  max="60"
-                  min="5"
+                  max="720"
+                  min="30"
                   type="range"
                   value={pomodoroDuration}
                   onChange={(e) => setPomodoroDuration(Number(e.target.value))}
@@ -190,8 +209,8 @@ const Settings: React.FC = () => {
                 />
               </div>
               <div className="flex justify-between text-xs text-text-secondary font-mono">
-                <span>5m</span>
-                <span>60m</span>
+                <span>30m</span>
+                <span>12h</span>
               </div>
             </div>
           </div>
@@ -200,13 +219,35 @@ const Settings: React.FC = () => {
             <div className="bg-white p-6 shadow-sharp border border-border-subtle">
               <div className="flex flex-col gap-4">
                 <div className="flex w-full items-center justify-between">
-                  <p className="text-text-main text-base font-medium">Short Break</p>
-                  <div className="bg-bg-page px-3 py-1 text-sm font-bold text-text-main min-w-[3rem] text-center border border-border-subtle">{shortBreak}</div>
+                  <div className="flex flex-col flex-1">
+                    <p className="text-text-main text-base font-medium">Short Break</p>
+                    <p className="text-text-secondary text-xs mt-1">Max 2 hours</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="120"
+                      value={shortBreak}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        if (val >= 1 && val <= 120) setShortBreak(val);
+                      }}
+                      onBlur={(e) => {
+                        const val = Number(e.target.value);
+                        if (val < 1) setShortBreak(1);
+                        if (val > 120) setShortBreak(120);
+                      }}
+                      disabled={saving}
+                      className="w-20 px-3 py-1.5 text-sm font-bold text-text-main text-center border border-border-subtle focus:border-primary focus:outline-none"
+                    />
+                    <span className="text-text-secondary text-xs font-medium">min</span>
+                  </div>
                 </div>
                 <div className="flex h-6 w-full items-center">
                   <input
                     className="w-full h-2 bg-border-subtle appearance-none cursor-pointer accent-primary"
-                    max="15"
+                    max="120"
                     min="1"
                     type="range"
                     value={shortBreak}
@@ -214,24 +255,54 @@ const Settings: React.FC = () => {
                     disabled={saving}
                   />
                 </div>
+                <div className="flex justify-between text-xs text-text-secondary font-mono">
+                  <span>1m</span>
+                  <span>2h</span>
+                </div>
               </div>
             </div>
             <div className="bg-white p-6 shadow-sharp border border-border-subtle">
               <div className="flex flex-col gap-4">
                 <div className="flex w-full items-center justify-between">
-                  <p className="text-text-main text-base font-medium">Long Break</p>
-                  <div className="bg-bg-page px-3 py-1 text-sm font-bold text-text-main min-w-[3rem] text-center border border-border-subtle">{longBreak}</div>
+                  <div className="flex flex-col flex-1">
+                    <p className="text-text-main text-base font-medium">Long Break</p>
+                    <p className="text-text-secondary text-xs mt-1">Max 4 hours</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="5"
+                      max="240"
+                      value={longBreak}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        if (val >= 5 && val <= 240) setLongBreak(val);
+                      }}
+                      onBlur={(e) => {
+                        const val = Number(e.target.value);
+                        if (val < 5) setLongBreak(5);
+                        if (val > 240) setLongBreak(240);
+                      }}
+                      disabled={saving}
+                      className="w-20 px-3 py-1.5 text-sm font-bold text-text-main text-center border border-border-subtle focus:border-primary focus:outline-none"
+                    />
+                    <span className="text-text-secondary text-xs font-medium">min</span>
+                  </div>
                 </div>
                 <div className="flex h-6 w-full items-center">
                   <input
                     className="w-full h-2 bg-border-subtle appearance-none cursor-pointer accent-primary"
-                    max="45"
+                    max="240"
                     min="5"
                     type="range"
                     value={longBreak}
                     onChange={(e) => setLongBreak(Number(e.target.value))}
                     disabled={saving}
                   />
+                </div>
+                <div className="flex justify-between text-xs text-text-secondary font-mono">
+                  <span>5m</span>
+                  <span>4h</span>
                 </div>
               </div>
             </div>
@@ -295,10 +366,10 @@ const Settings: React.FC = () => {
               />
             </div>
           </div>
-        </section>
+        </section >
 
         {/* Automation */}
-        <section className="flex flex-col gap-6 pt-4">
+        < section className="flex flex-col gap-6 pt-4" >
           <div className="flex items-center gap-2 text-text-main pb-2 border-b border-[#f0f2f4]">
             <span className="material-symbols-outlined text-primary">tune</span>
             <h3 className="text-lg font-bold leading-tight font-display">Automation</h3>
@@ -337,10 +408,10 @@ const Settings: React.FC = () => {
               </label>
             </div>
           </div>
-        </section>
+        </section >
 
         {/* Action Buttons */}
-        <div className="sticky bottom-4 z-10 mt-8">
+        < div className="sticky bottom-4 z-10 mt-8" >
           <div className="bg-white/80 backdrop-blur-sm p-4 border border-border-subtle shadow-lg flex justify-end gap-3">
             <button
               className="px-6 py-2.5 text-sm font-medium text-text-main bg-transparent hover:bg-bg-page border border-border-subtle transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -358,8 +429,8 @@ const Settings: React.FC = () => {
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
-        </div>
-      </div>
+        </div >
+      </div >
     </>
   );
 };
