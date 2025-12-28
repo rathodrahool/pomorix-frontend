@@ -182,14 +182,11 @@ const Settings: React.FC = () => {
                     min="30"
                     max="720"
                     value={pomodoroDuration}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      if (val >= 30 && val <= 720) setPomodoroDuration(val);
-                    }}
+                    onChange={(e) => setPomodoroDuration(e.target.value === '' ? '' : Number(e.target.value))}
                     onBlur={(e) => {
                       const val = Number(e.target.value);
-                      if (val < 30) setPomodoroDuration(30);
-                      if (val > 720) setPomodoroDuration(720);
+                      if (!val || val < 30) setPomodoroDuration(30);
+                      else if (val > 720) setPomodoroDuration(720);
                     }}
                     disabled={saving}
                     className="w-20 px-3 py-1.5 text-sm font-bold text-text-main text-center border border-border-subtle focus:border-primary focus:outline-none"
@@ -229,14 +226,11 @@ const Settings: React.FC = () => {
                       min="1"
                       max="120"
                       value={shortBreak}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        if (val >= 1 && val <= 120) setShortBreak(val);
-                      }}
+                      onChange={(e) => setShortBreak(e.target.value === '' ? '' : Number(e.target.value))}
                       onBlur={(e) => {
                         const val = Number(e.target.value);
-                        if (val < 1) setShortBreak(1);
-                        if (val > 120) setShortBreak(120);
+                        if (!val || val < 1) setShortBreak(1);
+                        else if (val > 120) setShortBreak(120);
                       }}
                       disabled={saving}
                       className="w-20 px-3 py-1.5 text-sm font-bold text-text-main text-center border border-border-subtle focus:border-primary focus:outline-none"
@@ -274,14 +268,11 @@ const Settings: React.FC = () => {
                       min="5"
                       max="240"
                       value={longBreak}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        if (val >= 5 && val <= 240) setLongBreak(val);
-                      }}
+                      onChange={(e) => setLongBreak(e.target.value === '' ? '' : Number(e.target.value))}
                       onBlur={(e) => {
                         const val = Number(e.target.value);
-                        if (val < 5) setLongBreak(5);
-                        if (val > 240) setLongBreak(240);
+                        if (!val || val < 5) setLongBreak(5);
+                        else if (val > 240) setLongBreak(240);
                       }}
                       disabled={saving}
                       className="w-20 px-3 py-1.5 text-sm font-bold text-text-main text-center border border-border-subtle focus:border-primary focus:outline-none"
