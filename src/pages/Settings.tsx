@@ -142,20 +142,6 @@ const Settings: React.FC = () => {
       />
 
       <div className="max-w-[720px] mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-        {/* Header */}
-        <div className="flex flex-col gap-2 border-b border-border-subtle pb-6">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate('/')}
-              className="p-2 -ml-2 hover:bg-black/5 transition-colors text-text-secondary rounded-none"
-            >
-              <span className="material-symbols-outlined">arrow_back</span>
-            </button>
-            <h1 className="text-text-main text-3xl font-bold leading-tight tracking-tight font-display">Settings</h1>
-          </div>
-          <p className="text-text-secondary text-sm font-normal pl-12">Configure your timer durations, notification preferences, and application behavior.</p>
-        </div>
-
         {/* Error Message */}
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-sm">
