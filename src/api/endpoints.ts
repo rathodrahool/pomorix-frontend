@@ -56,4 +56,9 @@ export const API_ENDPOINTS = {
         RESUME: '/pomodoro-session/resume',
         COMPLETE: '/pomodoro-session/complete',
     },
+
+    // Streak
+    STREAK: {
+        GET: '/streak',
+    },
 } as const;

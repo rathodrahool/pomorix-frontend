@@ -1,6 +1,7 @@
 
 import React, { useState, createContext, useContext } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useStreak } from '../hooks';
 
 // Focus Mode Context
 interface FocusModeContextType {
@@ -22,6 +23,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ isFocusMode, toggleFocusMode }) => {
   const location = useLocation();
+  const { streak, loading } = useStreak();
 
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between border-b border-primary-dark bg-primary px-4 py-3 lg:px-10 shadow-sm">
@@ -42,8 +44,8 @@ const Header: React.FC<HeaderProps> = ({ isFocusMode, toggleFocusMode }) => {
         <button
           onClick={toggleFocusMode}
           className={`flex items-center gap-2 px-4 py-1.5 text-sm font-bold transition-all border ${isFocusMode
-              ? 'bg-white text-primary border-white hover:bg-white/90'
-              : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
+            ? 'bg-white text-primary border-white hover:bg-white/90'
+            : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
             }`}
           title={isFocusMode ? 'Exit Focus Mode' : 'Enter Focus Mode'}
         >
@@ -53,7 +55,7 @@ const Header: React.FC<HeaderProps> = ({ isFocusMode, toggleFocusMode }) => {
           <span>FOCUS MODE</span>
         </button>
         <div className="hidden sm:block bg-white/10 hover:bg-white/20 transition-colors px-3 py-1 text-white text-sm font-bold border border-white/20 cursor-pointer">
-          🔥 12 Day Streak
+          🔥 {loading ? '...' : (streak?.current_streak || 0)} Day Streak
         </div>
         <Link to="/profile">
           <div className="bg-center bg-no-repeat aspect-square bg-cover size-9 border border-white/50 cursor-pointer hover:opacity-90"
