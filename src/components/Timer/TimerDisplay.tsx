@@ -123,12 +123,60 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
       const completeSessionAsync = async () => {
         try {
           await pomodoroService.completeSession();
-          toast.success('🎉 Pomodoro completed! Great work!', { duration: 4000 });
 
-          // Reset state
-          setCurrentSession(null);
-          setSecondsLeft(getInitialSeconds(mode));
-          completingRef.current = false; // Reset for next session
+          const wasFocusSession = currentSession.session_type === 'FOCUS';
+          const wasBreakSession = currentSession.session_type === 'SHORT_BREAK' || currentSession.session_type === 'LONG_BREAK';
+
+          if (wasFocusSession) {
+            toast.success('🎉 Pomodoro completed! Great work!', { duration: 4000 });
+          } else {
+            toast.success('✅ Break completed!', { duration: 3000 });
+          }
+
+          // Check if we should auto-start the next session
+          const shouldAutoStart =
+            (wasFocusSession && userSettings?.auto_start_breaks) ||
+            (wasBreakSession && userSettings?.auto_start_pomodoros);
+
+          if (shouldAutoStart && userSettings) {
+            // Determine next session type
+            let nextSessionType: SessionType;
+            let nextMode: TimerMode;
+
+            if (wasFocusSession) {
+              // After focus, start a break (short or long based on completed count)
+              // For simplicity, we'll use short break by default
+              // You can enhance this to track pomodoro count for long breaks
+              nextSessionType = 'SHORT_BREAK';
+              nextMode = 'shortBreak';
+            } else {
+              // After break, start focus
+              nextSessionType = 'FOCUS';
+              nextMode = 'focus';
+            }
+
+            // Start the next session
+            try {
+              const nextSession = await pomodoroService.startSession(nextSessionType);
+              setMode(nextMode);
+              setCurrentSession(nextSession);
+              setSecondsLeft(nextSession.duration_seconds);
+              setIsActive(true);
+              completingRef.current = false;
+            } catch (err: any) {
+              const errorMsg = err.response?.data?.message || 'Failed to auto-start next session';
+              toast.error(errorMsg);
+              // Reset to default state
+              setCurrentSession(null);
+              setSecondsLeft(getInitialSeconds(mode));
+              completingRef.current = false;
+            }
+          } else {
+            // No auto-start - reset state
+            setCurrentSession(null);
+            setSecondsLeft(getInitialSeconds(mode));
+            completingRef.current = false;
+          }
 
           // Refresh tasks to update pomodoro count and check for task completion
           if (onPomodoroComplete) {
@@ -144,7 +192,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
       completeSessionAsync();
     }
     return () => clearInterval(interval);
-  }, [isActive, secondsLeft, currentSession, mode, getInitialSeconds]);
+  }, [isActive, secondsLeft, currentSession, mode, getInitialSeconds, userSettings, onPomodoroComplete]);
 
   const formatTime = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);
