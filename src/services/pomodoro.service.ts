@@ -5,7 +5,9 @@ import type {
     PomodoroSessionResponse,
     CurrentSessionResponse,
     ActiveSessionData,
+    SessionType,
 } from '../types';
+import { settingsService } from './settings.service';
 
 /**
  * Pomodoro Session Service
@@ -15,14 +17,13 @@ export const pomodoroService = {
     /**
      * Start a new Pomodoro session
      * Requires an active task to be selected
+     * Backend automatically uses user settings for durations based on session_type
      */
     async startSession(
-        focusDuration: number = 1500,  // Default: 25 minutes
-        breakDuration: number = 300     // Default: 5 minutes
+        sessionType: SessionType
     ): Promise<PomodoroSessionResponse> {
         const requestData: StartPomodoroRequest = {
-            focus_duration_seconds: focusDuration,
-            break_duration_seconds: breakDuration,
+            session_type: sessionType,
         };
 
         const response = await apiClient.post<StartPomodoroResponse>(

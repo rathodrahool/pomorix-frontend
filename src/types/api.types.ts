@@ -190,18 +190,19 @@ export interface UpdateStatusRequest {
 
 export type PomodoroSessionState = 'FOCUS' | 'BREAK' | 'COMPLETED' | 'ABORTED';
 
+export type SessionType = 'FOCUS' | 'SHORT_BREAK' | 'LONG_BREAK';
+
 export interface StartPomodoroRequest {
-    focus_duration_seconds: number;  // Min: 60, Max: 7200 (1 min - 2 hours)
-    break_duration_seconds: number;  // Min: 60, Max: 1800 (1 min - 30 min)
+    session_type: SessionType;
 }
 
 export interface PomodoroSessionResponse {
     session_id: string;
     task_id: string;
     task_title: string;
+    session_type: SessionType;
     state: PomodoroSessionState;
-    focus_duration_seconds: number;
-    break_duration_seconds: number;
+    duration_seconds: number;
     started_at: string;
 }
 
@@ -216,9 +217,9 @@ export interface ActiveSessionData {
     session_id: string;
     task_id: string;
     task_title: string;
+    session_type: SessionType;
     state: PomodoroSessionState;
-    focus_duration_seconds: number;
-    break_duration_seconds: number;
+    duration_seconds: number;
     started_at: string;
     paused_at: string | null;
     is_paused: boolean;

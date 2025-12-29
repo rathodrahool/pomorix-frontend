@@ -56,4 +56,11 @@ export const API_ENDPOINTS = {
         RESUME: '/pomodoro-session/resume',
         COMPLETE: '/pomodoro-session/complete',
     },
+
+    // User Settings
+    SETTINGS: {
+        GET: '/user-settings',
+        UPDATE: '/user-settings',
+        RESET: '/user-settings/reset',
+    },
 } as const;
