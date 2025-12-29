@@ -57,6 +57,11 @@ export const API_ENDPOINTS = {
         COMPLETE: '/pomodoro-session/complete',
     },
 
+    // Streak
+    STREAK: {
+        GET: '/streak',
+    },
+
     // User Settings
     SETTINGS: {
         GET: '/user-settings',
