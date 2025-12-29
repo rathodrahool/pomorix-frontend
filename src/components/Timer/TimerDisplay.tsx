@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { TimerMode } from '../../types';
-import { pomodoroService } from '../../services';
-import type { PomodoroSessionResponse, ActiveSessionData } from '../../types';
+import { pomodoroService, settingsService } from '../../services';
+import type { PomodoroSessionResponse, ActiveSessionData, UserSettings, SessionType } from '../../types';
 
 interface TimerDisplayProps {
   initialTask: string;
@@ -14,16 +14,23 @@ interface TimerDisplayProps {
 
 const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, hasActiveTask, hasAnyTasks, onPomodoroComplete }) => {
   const [mode, setMode] = useState<TimerMode>('focus');
-  const [secondsLeft, setSecondsLeft] = useState(1 * 60); // 1 min for testing
+  const [secondsLeft, setSecondsLeft] = useState(25 * 60); // Default: 25 minutes
   const [isActive, setIsActive] = useState(false);
   const [taskInput, setTaskInput] = useState(initialTask);
   const [currentSession, setCurrentSession] = useState<ActiveSessionData | null>(null);
+  const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
   const completingRef = useRef(false); // Prevent duplicate completion calls
 
-  // Fetch current session on mount to sync with backend
+  // Fetch user settings and current session on mount
   useEffect(() => {
-    const fetchSession = async () => {
+    const fetchData = async () => {
       try {
+        // Fetch settings
+        const settings = await settingsService.getUserSettings();
+        setUserSettings(settings);
+        setSecondsLeft(settings.pomodoro_duration * 60); // Set initial timer from settings
+
+        // Fetch current session
         const session = await pomodoroService.getCurrentSession();
         if (session) {
           setCurrentSession(session);
@@ -31,10 +38,10 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
           setIsActive(!session.is_paused);
         }
       } catch (err) {
-        // Silent fail - no active session is normal
+        // Silent fail - use defaults if settings unavailable
       }
     };
-    fetchSession();
+    fetchData();
   }, []);
 
   // Auto-pause if active task is removed
@@ -50,19 +57,56 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
   }, [initialTask]);
 
   const getInitialSeconds = useCallback((m: TimerMode) => {
-    switch (m) {
-      case 'focus': return 1 * 60; // 1 min for testing
-      case 'shortBreak': return 1 * 60; // 1 min for testing
-      case 'longBreak': return 1 * 60; // 1 min for testing
-      default: return 1 * 60; // 1 min for testing
+    if (!userSettings) {
+      // Fallback defaults if settings not loaded
+      switch (m) {
+        case 'focus': return 25 * 60;
+        case 'shortBreak': return 5 * 60;
+        case 'longBreak': return 15 * 60;
+        default: return 25 * 60;
+      }
     }
-  }, []);
 
-  const changeMode = (newMode: TimerMode) => {
-    setMode(newMode);
-    setSecondsLeft(getInitialSeconds(newMode));
-    setIsActive(false);
-    completingRef.current = false; // Reset completion flag
+    // Use user settings
+    switch (m) {
+      case 'focus': return userSettings.pomodoro_duration * 60;
+      case 'shortBreak': return userSettings.short_break * 60;
+      case 'longBreak': return userSettings.long_break * 60;
+      default: return userSettings.pomodoro_duration * 60;
+    }
+  }, [userSettings]);
+
+  const changeMode = async (newMode: TimerMode) => {
+    if (!hasActiveTask) return;
+
+    // Map UI mode to SessionType
+    const sessionTypeMap: Record<TimerMode, SessionType> = {
+      focus: 'FOCUS',
+      shortBreak: 'SHORT_BREAK',
+      longBreak: 'LONG_BREAK',
+    };
+
+    try {
+      // Start new session with selected type
+      const session = await pomodoroService.startSession(sessionTypeMap[newMode]);
+
+      setMode(newMode);
+      setCurrentSession(session);
+      setSecondsLeft(session.duration_seconds);
+      setIsActive(true);
+      completingRef.current = false;
+
+      const sessionTypeLabel = {
+        focus: 'Focus',
+        shortBreak: 'Short Break',
+        longBreak: 'Long Break',
+      }[newMode];
+
+      toast.success(`${sessionTypeLabel} session started for "${session.task_title}"`);
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || 'Failed to start session';
+      toast.error(errorMsg);
+    }
   };
 
   useEffect(() => {
@@ -79,12 +123,60 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
       const completeSessionAsync = async () => {
         try {
           await pomodoroService.completeSession();
-          toast.success('🎉 Pomodoro completed! Great work!', { duration: 4000 });
 
-          // Reset state
-          setCurrentSession(null);
-          setSecondsLeft(getInitialSeconds(mode));
-          completingRef.current = false; // Reset for next session
+          const wasFocusSession = currentSession.session_type === 'FOCUS';
+          const wasBreakSession = currentSession.session_type === 'SHORT_BREAK' || currentSession.session_type === 'LONG_BREAK';
+
+          if (wasFocusSession) {
+            toast.success('🎉 Pomodoro completed! Great work!', { duration: 4000 });
+          } else {
+            toast.success('✅ Break completed!', { duration: 3000 });
+          }
+
+          // Check if we should auto-start the next session
+          const shouldAutoStart =
+            (wasFocusSession && userSettings?.auto_start_breaks) ||
+            (wasBreakSession && userSettings?.auto_start_pomodoros);
+
+          if (shouldAutoStart && userSettings) {
+            // Determine next session type
+            let nextSessionType: SessionType;
+            let nextMode: TimerMode;
+
+            if (wasFocusSession) {
+              // After focus, start a break (short or long based on completed count)
+              // For simplicity, we'll use short break by default
+              // You can enhance this to track pomodoro count for long breaks
+              nextSessionType = 'SHORT_BREAK';
+              nextMode = 'shortBreak';
+            } else {
+              // After break, start focus
+              nextSessionType = 'FOCUS';
+              nextMode = 'focus';
+            }
+
+            // Start the next session
+            try {
+              const nextSession = await pomodoroService.startSession(nextSessionType);
+              setMode(nextMode);
+              setCurrentSession(nextSession);
+              setSecondsLeft(nextSession.duration_seconds);
+              setIsActive(true);
+              completingRef.current = false;
+            } catch (err: any) {
+              const errorMsg = err.response?.data?.message || 'Failed to auto-start next session';
+              toast.error(errorMsg);
+              // Reset to default state
+              setCurrentSession(null);
+              setSecondsLeft(getInitialSeconds(mode));
+              completingRef.current = false;
+            }
+          } else {
+            // No auto-start - reset state
+            setCurrentSession(null);
+            setSecondsLeft(getInitialSeconds(mode));
+            completingRef.current = false;
+          }
 
           // Refresh tasks to update pomodoro count and check for task completion
           if (onPomodoroComplete) {
@@ -100,7 +192,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
       completeSessionAsync();
     }
     return () => clearInterval(interval);
-  }, [isActive, secondsLeft, currentSession, mode, getInitialSeconds]);
+  }, [isActive, secondsLeft, currentSession, mode, getInitialSeconds, userSettings, onPomodoroComplete]);
 
   const formatTime = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);
@@ -117,12 +209,17 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
     if (!hasActiveTask) return;
 
     try {
-      const session = await pomodoroService.startSession(
-        getInitialSeconds(mode),  // focus duration
-        1 * 60  // 1 min break for testing
-      );
+      // Map UI mode to SessionType
+      const sessionTypeMap: Record<TimerMode, SessionType> = {
+        focus: 'FOCUS',
+        shortBreak: 'SHORT_BREAK',
+        longBreak: 'LONG_BREAK',
+      };
+
+      const session = await pomodoroService.startSession(sessionTypeMap[mode]);
 
       setCurrentSession(session);
+      setSecondsLeft(session.duration_seconds);
       setIsActive(true);
       toast.success(`Pomodoro started for "${session.task_title}"`);
     } catch (err: any) {
@@ -194,7 +291,11 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
       {/* Mode Indicator */}
       <div className="inline-flex items-center gap-2 px-3 py-1 bg-bg-page text-text-secondary text-xs font-bold uppercase tracking-wider mb-6 border border-border-subtle">
         <span className="material-symbols-outlined !text-sm text-primary">bolt</span>
-        {mode === 'focus' ? 'Current Focus' : 'Taking a Break'}
+        {currentSession ? (
+          currentSession.session_type === 'FOCUS' ? 'Current Focus' : 'Taking a Break'
+        ) : (
+          mode === 'focus' ? 'Current Focus' : 'Taking a Break'
+        )}
       </div>
 
       {/* Task Input */}

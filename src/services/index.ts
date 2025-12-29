@@ -4,4 +4,4 @@ export { taskService } from './task.service';
 export { timerService } from './timer.service';
 export { pomodoroService } from './pomodoro.service';
 export { streakService } from './streak.service';
-
+export { settingsService } from './settings.service';

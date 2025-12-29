@@ -27,20 +27,47 @@ const Header: React.FC<HeaderProps> = ({ isFocusMode, toggleFocusMode }) => {
 
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between border-b border-primary-dark bg-primary px-4 py-3 lg:px-10 shadow-sm">
-      <div className="flex items-center gap-3">
+      {/* Left: Logo */}
+      <div className="flex items-center gap-3" style={{ flexBasis: '0', flexGrow: 1 }}>
         <Link to="/" className="flex items-center justify-center size-8 bg-white text-primary border border-white">
           <span className="material-symbols-outlined !text-[24px]">check</span>
         </Link>
         <Link to="/" className="text-white text-xl font-bold tracking-tight font-display hover:opacity-90">Pomorix</Link>
       </div>
 
-      <nav className="hidden md:flex items-center gap-8 ml-12">
-        <Link to="/" className={`text-sm font-medium transition-colors ${location.pathname === '/' ? 'text-white border-b-2 border-white pb-0.5' : 'text-white/70 hover:text-white'}`}>Timer</Link>
-        <Link to="/profile" className={`text-sm font-medium transition-colors ${location.pathname === '/profile' ? 'text-white border-b-2 border-white pb-0.5' : 'text-white/70 hover:text-white'}`}>Profile</Link>
-        <Link to="/settings" className={`text-sm font-medium transition-colors ${location.pathname === '/settings' ? 'text-white border-b-2 border-white pb-0.5' : 'text-white/70 hover:text-white'}`}>Settings</Link>
+      {/* Center: Navigation */}
+      <nav className="flex items-center justify-center gap-2" style={{ flexBasis: '0', flexGrow: 1 }}>
+        <Link
+          to="/"
+          className={`px-8 py-2 text-sm font-bold uppercase tracking-wide transition-all ${location.pathname === '/'
+            ? 'text-white bg-white/20 border-b-3 border-white'
+            : 'text-white/70 hover:text-white hover:bg-white/10'
+            }`}
+        >
+          Timer
+        </Link>
+        <Link
+          to="/profile"
+          className={`px-8 py-2 text-sm font-bold uppercase tracking-wide transition-all ${location.pathname === '/profile'
+            ? 'text-white bg-white/20 border-b-3 border-white'
+            : 'text-white/70 hover:text-white hover:bg-white/10'
+            }`}
+        >
+          Profile
+        </Link>
+        <Link
+          to="/settings"
+          className={`px-8 py-2 text-sm font-bold uppercase tracking-wide transition-all ${location.pathname === '/settings'
+            ? 'text-white bg-white/20 border-b-3 border-white'
+            : 'text-white/70 hover:text-white hover:bg-white/10'
+            }`}
+        >
+          Settings
+        </Link>
       </nav>
 
-      <div className="flex items-center gap-3">
+      {/* Right: Actions */}
+      <div className="flex items-center gap-3 justify-end" style={{ flexBasis: '0', flexGrow: 1 }}>
         <button
           onClick={toggleFocusMode}
           className={`flex items-center gap-2 px-4 py-1.5 text-sm font-bold transition-all border ${isFocusMode

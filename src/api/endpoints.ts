@@ -61,4 +61,11 @@ export const API_ENDPOINTS = {
     STREAK: {
         GET: '/streak',
     },
+
+    // User Settings
+    SETTINGS: {
+        GET: '/user-settings',
+        UPDATE: '/user-settings',
+        RESET: '/user-settings/reset',
+    },
 } as const;
