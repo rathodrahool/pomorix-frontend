@@ -209,7 +209,23 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                 max="20"
                 className="w-20 bg-surface border-y border-gray-300 text-text-main text-center focus:ring-0 focus:border-primary h-14 text-base font-medium transition-all"
                 value={newTaskPomodoros}
-                onChange={(e) => setNewTaskPomodoros(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') {
+                    setNewTaskPomodoros('' as any); // Allow empty for editing
+                  } else {
+                    const num = parseInt(val);
+                    if (!isNaN(num)) {
+                      setNewTaskPomodoros(Math.max(1, Math.min(20, num)));
+                    }
+                  }
+                }}
+                onBlur={(e) => {
+                  // Ensure valid value on blur
+                  if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                    setNewTaskPomodoros(1);
+                  }
+                }}
                 disabled={isCreating || loading}
                 title="Estimated Pomodoros"
               />
@@ -289,7 +305,23 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                           min="1"
                           max="20"
                           value={editingPomodoros}
-                          onChange={(e) => setEditingPomodoros(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === '') {
+                              setEditingPomodoros('' as any); // Allow empty for editing
+                            } else {
+                              const num = parseInt(val);
+                              if (!isNaN(num)) {
+                                setEditingPomodoros(Math.max(1, Math.min(20, num)));
+                              }
+                            }
+                          }}
+                          onBlur={(e) => {
+                            // Ensure valid value on blur
+                            if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                              setEditingPomodoros(1);
+                            }
+                          }}
                           onClick={(e) => e.stopPropagation()}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') saveEdit();
