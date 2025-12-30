@@ -21,27 +21,52 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
   const completingRef = useRef(false); // Prevent duplicate completion calls
 
-  // Fetch user settings and current session on mount
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch settings
-        const settings = await settingsService.getUserSettings();
-        setUserSettings(settings);
-        setSecondsLeft(settings.pomodoro_duration * 60); // Set initial timer from settings
+  // Fetch user settings and current session
+  const fetchData = useCallback(async () => {
+    try {
+      // Fetch settings
+      const settings = await settingsService.getUserSettings();
+      setUserSettings(settings);
 
-        // Fetch current session
-        const session = await pomodoroService.getCurrentSession();
-        if (session) {
-          setCurrentSession(session);
-          setSecondsLeft(session.remaining_seconds);
-          setIsActive(!session.is_paused);
-        }
-      } catch (err) {
-        // Silent fail - use defaults if settings unavailable
+      // Only update timer duration if no active session
+      if (!currentSession) {
+        setSecondsLeft(settings.pomodoro_duration * 60);
       }
-    };
+
+      // Fetch current session
+      const session = await pomodoroService.getCurrentSession();
+      if (session) {
+        setCurrentSession(session);
+        setSecondsLeft(session.remaining_seconds);
+        setIsActive(!session.is_paused);
+      }
+    } catch (err) {
+      // Silent fail - use defaults if settings unavailable
+    }
+  }, [currentSession]);
+
+  // Fetch on mount
+  useEffect(() => {
     fetchData();
+  }, []);
+
+  // Re-fetch settings when window regains focus (e.g., returning from settings page)
+  useEffect(() => {
+    const handleFocus = () => {
+      // Only re-fetch settings, not the entire session
+      const refetchSettings = async () => {
+        try {
+          const settings = await settingsService.getUserSettings();
+          setUserSettings(settings);
+        } catch (err) {
+          // Silent fail
+        }
+      };
+      refetchSettings();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   // Auto-pause if active task is removed
@@ -133,28 +158,50 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
             toast.success('✅ Break completed!', { duration: 3000 });
           }
 
-          // Check if we should auto-start the next session
-          const shouldAutoStart =
-            (wasFocusSession && userSettings?.auto_start_breaks) ||
-            (wasBreakSession && userSettings?.auto_start_pomodoros);
+          // Debug logging
+          console.log('=== AUTO-START CHECK ===');
+          console.log('Session Type:', currentSession.session_type);
+          console.log('Was Focus?', wasFocusSession);
+          console.log('Was Break?', wasBreakSession);
+          console.log('User Settings:', userSettings);
+          console.log('Auto-start breaks setting:', userSettings?.auto_start_breaks);
+          console.log('Auto-start pomodoros setting:', userSettings?.auto_start_pomodoros);
 
-          if (shouldAutoStart && userSettings) {
-            // Determine next session type
-            let nextSessionType: SessionType;
-            let nextMode: TimerMode;
+          // Determine what to start next based on user preferences
+          let shouldAutoStart = false;
+          let nextSessionType: SessionType | null = null;
+          let nextMode: TimerMode | null = null;
 
-            if (wasFocusSession) {
-              // After focus, start a break (short or long based on completed count)
-              // For simplicity, we'll use short break by default
-              // You can enhance this to track pomodoro count for long breaks
+          if (wasFocusSession) {
+            // After completing a focus session, check user's preferences
+            if (userSettings?.auto_start_breaks) {
+              // User wants to auto-start breaks after focus
+              shouldAutoStart = true;
               nextSessionType = 'SHORT_BREAK';
               nextMode = 'shortBreak';
-            } else {
-              // After break, start focus
+              console.log('Will auto-start: SHORT BREAK (auto_start_breaks is ON)');
+            } else if (userSettings?.auto_start_pomodoros) {
+              // User wants to keep doing pomodoros back-to-back (skip breaks)
+              shouldAutoStart = true;
               nextSessionType = 'FOCUS';
               nextMode = 'focus';
+              console.log('Will auto-start: FOCUS (auto_start_pomodoros is ON, skipping break)');
             }
+          } else if (wasBreakSession) {
+            // After completing a break session
+            if (userSettings?.auto_start_pomodoros) {
+              // User wants to auto-start pomodoros after breaks
+              shouldAutoStart = true;
+              nextSessionType = 'FOCUS';
+              nextMode = 'focus';
+              console.log('Will auto-start: FOCUS (auto_start_pomodoros is ON)');
+            }
+          }
 
+          console.log('Should Auto-Start?', shouldAutoStart);
+          console.log('========================');
+
+          if (shouldAutoStart && nextSessionType && nextMode && userSettings) {
             // Start the next session
             try {
               const nextSession = await pomodoroService.startSession(nextSessionType);
@@ -162,7 +209,13 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
               setCurrentSession(nextSession);
               setSecondsLeft(nextSession.duration_seconds);
               setIsActive(true);
-              completingRef.current = false;
+
+              // Reset the completing flag after a small delay to ensure state updates complete
+              setTimeout(() => {
+                completingRef.current = false;
+              }, 100);
+
+              toast.success(`Auto-started ${nextMode === 'focus' ? 'Focus' : nextMode === 'shortBreak' ? 'Short Break' : 'Long Break'} session!`, { duration: 3000 });
             } catch (err: any) {
               const errorMsg = err.response?.data?.message || 'Failed to auto-start next session';
               toast.error(errorMsg);

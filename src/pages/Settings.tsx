@@ -369,7 +369,7 @@ const Settings: React.FC = () => {
             <div className="flex items-center justify-between p-4">
               <div className="flex flex-col gap-0.5">
                 <p className="text-text-main text-sm font-medium">Auto-start Breaks</p>
-                <p className="text-text-secondary text-xs">Automatically start break timer when pomodoro ends</p>
+                <p className="text-text-secondary text-xs">After completing a focus session, automatically start a break</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -385,7 +385,7 @@ const Settings: React.FC = () => {
             <div className="flex items-center justify-between p-4">
               <div className="flex flex-col gap-0.5">
                 <p className="text-text-main text-sm font-medium">Auto-start Pomodoros</p>
-                <p className="text-text-secondary text-xs">Automatically start next pomodoro when break ends</p>
+                <p className="text-text-secondary text-xs">Auto-start focus sessions after breaks, or chain focus sessions continuously if breaks are disabled</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
