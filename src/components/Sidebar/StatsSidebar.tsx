@@ -1,7 +1,8 @@
 
+
 import React from 'react';
-import { Achievement } from '../../types';
 import { useStreak } from '../../hooks';
+
 
 const StatsSidebar: React.FC = () => {
   const { streak, loading } = useStreak();
@@ -12,13 +13,6 @@ const StatsSidebar: React.FC = () => {
   const progress = Math.min((currentStreak / nextMilestone) * 100, 100);
   const daysRemaining = Math.max(nextMilestone - currentStreak, 0);
 
-  const achievements: Achievement[] = [
-    { id: '1', title: 'First Step', description: 'Complete your first Pomodoro', icon: 'check_circle', unlocked: true, type: 'common' },
-    { id: '2', title: 'Week Streak', description: '7 Day Streak Achieved!', icon: 'local_fire_department', unlocked: true, type: 'rare' },
-    { id: '3', title: '100 Pomos', description: 'Complete 100 sessions', icon: 'timer_10', unlocked: true, type: 'rare' },
-    { id: '4', title: 'Veteran', description: 'Reach 500 Pomos', icon: 'military_tech', unlocked: false, type: 'epic' },
-    { id: '5', title: 'Month', description: 'Focus for a whole month', icon: 'calendar_month', unlocked: false, type: 'epic' },
-  ];
 
   return (
     <div className="flex flex-col h-full">
@@ -73,39 +67,50 @@ const StatsSidebar: React.FC = () => {
         </div>
       </div>
 
-      {/* Achievements List */}
-      <div className="flex flex-col flex-1">
-        <div className="p-4 pb-2 flex items-center justify-between sticky top-0 bg-bg-page z-10 border-b border-[#eee]">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-text-secondary">Achievements</h3>
-          <span className="text-[10px] font-mono font-bold text-primary bg-primary/10 px-2 py-0.5">5/12</span>
+      {/* Next Badge */}
+      <div className="p-6 flex-1 bg-bg-page flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-text-secondary">Next Badge</h3>
+          <span className="text-[10px] font-mono font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5">PLATINUM</span>
         </div>
-        <div className="p-4 grid grid-cols-3 gap-3 overflow-y-auto">
-          {achievements.map((a) => (
-            <div
-              key={a.id}
-              className={`group relative aspect-square bg-white border transition-all cursor-help flex flex-col items-center justify-center gap-1 ${a.unlocked ? (a.type === 'rare' ? 'border-primary shadow-sm' : 'border-border-subtle') : 'bg-[#f5f5f5] border-dashed border-[#cccccc] opacity-60'}`}
-            >
-              <span className={`material-symbols-outlined text-2xl ${a.unlocked ? (a.type === 'rare' ? 'text-primary' : 'text-text-main') : 'text-[#bbbbbb]'}`}>
-                {a.icon}
-              </span>
-              <span className={`text-[8px] font-bold uppercase ${a.unlocked ? (a.type === 'rare' ? 'text-primary' : 'text-text-main') : 'text-[#999999]'}`}>
-                {a.title}
-              </span>
-
-              {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[140px] bg-black text-white text-[10px] p-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 text-center font-medium">
-                {a.description}
-                {!a.unlocked && <span className="block mt-1 font-bold text-primary">LOCKED</span>}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-black"></div>
+        <div className="bg-white border border-border-subtle p-5 shadow-sm relative overflow-hidden group hover:border-primary transition-colors">
+          <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
+            <span className="material-symbols-outlined text-8xl text-primary -rotate-12 translate-x-4 -translate-y-4">verified</span>
+          </div>
+          <div className="relative z-10 flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <div className="size-10 flex items-center justify-center bg-[#f5f5f5] text-gray-400 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
+                <span className="material-symbols-outlined text-xl">verified</span>
+              </div>
+              <div>
+                <div className="text-xs font-bold uppercase text-text-secondary">Upcoming</div>
+                <div className="text-sm font-bold text-text-main">Platinum Tier</div>
               </div>
             </div>
-          ))}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-[9px] font-mono font-bold text-text-secondary">
+                <span>PROGRESS</span>
+                <span>84%</span>
+              </div>
+              <div className="w-full bg-[#f0f0f0] h-1.5 border border-[#f0f0f0]">
+                <div className="bg-primary h-full w-[84%] relative">
+                  <div className="absolute inset-0 bg-white/30 skew-x-12 w-full -translate-x-full animate-[shine_2s_infinite]"></div>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 pt-1 border-t border-dashed border-gray-200 mt-1">
+              <span className="material-symbols-outlined text-primary text-sm mt-0.5">lock</span>
+              <p className="text-[10px] text-text-secondary leading-tight">
+                Reach <span className="font-bold text-text-main">150 Pomodoros</span> to unlock.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="mt-auto p-4 border-t border-border-subtle bg-[#fafafa]">
         <p className="text-[10px] text-text-secondary text-center font-mono uppercase">
-          Top 5% of users this week
+          Season Ends: 12 Days
         </p>
       </div>
     </div>
