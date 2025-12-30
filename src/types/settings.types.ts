@@ -15,7 +15,6 @@ export enum TickingSound {
     NONE = 'NONE',
     TICKING_FAST = 'TICKING_FAST',
     TICKING_SLOW = 'TICKING_SLOW',
-    WHITE_NOISE = 'WHITE_NOISE',
 }
 
 // User Settings Interface (full response)

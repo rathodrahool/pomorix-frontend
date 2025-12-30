@@ -385,7 +385,6 @@ const Settings: React.FC = () => {
                 <option value={TickingSound.NONE}>None</option>
                 <option value={TickingSound.TICKING_FAST}>Ticking Fast</option>
                 <option value={TickingSound.TICKING_SLOW}>Ticking Slow</option>
-                <option value={TickingSound.WHITE_NOISE}>White Noise</option>
               </select>
             </div>
             <div className="flex flex-col gap-3 p-4">

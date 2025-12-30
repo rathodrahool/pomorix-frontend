@@ -15,7 +15,6 @@ export const ALARM_SOUND_PATHS: Record<AlarmSound, string | null> = {
 export const TICKING_SOUND_PATHS: Record<TickingSound, string | null> = {
     [TickingSound.TICKING_FAST]: 'sounds/ambient/ticking-fast.mp3',
     [TickingSound.TICKING_SLOW]: 'sounds/ambient/ticking-slow.mp3',
-    [TickingSound.WHITE_NOISE]: 'sounds/ambient/white-noise.mp3',
     [TickingSound.NONE]: null,
 };
 
