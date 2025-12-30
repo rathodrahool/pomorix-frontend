@@ -128,7 +128,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
       setMode(newMode);
       setCurrentSession(session);
       setSecondsLeft(session.duration_seconds);
-      setIsActive(true);
+      setIsActive(false); // Don't auto-start when manually switching modes
       completingRef.current = false;
 
       const sessionTypeLabel = {
@@ -137,7 +137,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
         longBreak: 'Long Break',
       }[newMode];
 
-      toast.success(`${sessionTypeLabel} session started for "${session.task_title}"`);
+      toast.success(`${sessionTypeLabel} session ready. Click Start to begin!`);
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || 'Failed to start session';
       toast.error(errorMsg);
