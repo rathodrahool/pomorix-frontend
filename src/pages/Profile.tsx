@@ -1,6 +1,8 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { useBadgeDefinitions } from '../hooks';
+import { RANK_TIERS, RANK_REQUIREMENTS, type BadgeCode } from '../types';
 
 const data = [
   { name: 'Mon', hours: 2.5 },
@@ -12,7 +14,54 @@ const data = [
   { name: 'Sun', hours: 3.8 },
 ];
 
+// Badge tier colors and icons
+const BADGE_STYLES: Record<string, { color: string; icon: string; borderColor: string; }> = {
+  BRONZE: { color: '#cd7f32', icon: 'shield', borderColor: '#cd7f32' },
+  SILVER: { color: '#64748b', icon: 'verified_user', borderColor: '#64748b' },
+  GOLD: { color: '#f59e0b', icon: 'stars', borderColor: '#f59e0b' },
+  PLATINUM: { color: '#06b6d4', icon: 'military_tech', borderColor: '#06b6d4' },
+  DIAMOND: { color: '#2563eb', icon: 'diamond', borderColor: '#2563eb' },
+  ASCENDANT: { color: '#ff6600', icon: 'workspace_premium', borderColor: '#ff6600' },
+};
+
 const Profile: React.FC = () => {
+  const { data: badges, isLoading } = useBadgeDefinitions();
+
+  // Calculate current rank and tier badges
+  const { currentRank, rankBadges, totalPomodoros } = useMemo(() => {
+    if (!badges) {
+      return {
+        currentRank: null,
+        rankBadges: [],
+        totalPomodoros: 0
+      };
+    }
+
+    // Filter rank tier badges (VOLUME category) and sort by tier
+    const ranks = badges
+      .filter(b => b.category === 'VOLUME')
+      .sort((a, b) => {
+        const indexA = RANK_TIERS.indexOf(a.code as BadgeCode);
+        const indexB = RANK_TIERS.indexOf(b.code as BadgeCode);
+        return indexA - indexB; // Ascending order
+      });
+
+    // Get current rank (highest unlocked)
+    const unlockedRanks = ranks.filter(b => b.is_unlocked);
+    const current = unlockedRanks[unlockedRanks.length - 1] || null;
+
+    // Calculate total pomodoros from current rank
+    const totalPomos = current ? RANK_REQUIREMENTS[current.code as BadgeCode] : 0;
+
+    return {
+      currentRank: current,
+      rankBadges: ranks,
+      totalPomodoros: totalPomos
+    };
+  }, [badges]);
+
+  const totalHours = Math.round((totalPomodoros * 25) / 60);
+
   return (
     <div className="max-w-[1024px] mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
       {/* Profile Header */}
@@ -30,11 +79,15 @@ const Profile: React.FC = () => {
             </div>
             <div className="mt-6 pt-6 border-t border-border-subtle flex gap-8">
               <div>
-                <span className="block text-xl font-bold font-mono">1,240</span>
+                <span className="block text-xl font-bold font-mono">
+                  {isLoading ? '...' : totalPomodoros}
+                </span>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary">Total Sessions</span>
               </div>
               <div>
-                <span className="block text-xl font-bold font-mono">50h</span>
+                <span className="block text-xl font-bold font-mono">
+                  {isLoading ? '...' : `${totalHours}h`}
+                </span>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary">Total Hours</span>
               </div>
             </div>
@@ -156,106 +209,83 @@ const Profile: React.FC = () => {
       <section>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold border-l-4 border-primary pl-3 leading-none text-text-main font-display">Rank & Badges</h3>
-          <span className="text-xs font-mono text-text-secondary">CURRENT RANK: DIAMOND</span>
+          <span className="text-xs font-mono text-text-secondary">
+            {isLoading ? 'LOADING...' : `CURRENT RANK: ${currentRank?.title?.toUpperCase() || 'NONE'}`}
+          </span>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Bronze - Tier I */}
-          <div className="bg-white border border-border-subtle p-5 flex flex-col items-center justify-between h-48 relative group hover:border-[#cd7f32] hover:shadow-lg hover:scale-[1.02] transition-all duration-300 shadow-sharp border-b-4 border-b-[#cd7f32] cursor-pointer">
-            <div className="w-full flex justify-between items-start mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#cd7f32]">Tier I</span>
-              <span className="material-symbols-outlined text-base text-primary group-hover:scale-110 transition-transform">check_circle</span>
-            </div>
-            <div className="flex flex-col items-center gap-2 z-10">
-              <span className="material-symbols-outlined text-6xl text-[#cd7f32] drop-shadow-sm font-light group-hover:scale-110 transition-transform duration-300">shield</span>
-            </div>
-            <div className="text-center w-full mt-4">
-              <h4 className="font-bold text-text-main text-lg tracking-tight uppercase">Bronze</h4>
-              <div className="w-full h-px bg-border-subtle my-2"></div>
-              <p className="text-[10px] text-text-secondary font-mono uppercase">1+ Hours</p>
-            </div>
-          </div>
 
-          {/* Silver - Tier II */}
-          <div className="bg-white border border-border-subtle p-5 flex flex-col items-center justify-between h-48 relative group hover:border-slate-400 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 shadow-sharp border-b-4 border-b-slate-400 cursor-pointer">
-            <div className="w-full flex justify-between items-start mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Tier II</span>
-              <span className="material-symbols-outlined text-base text-primary group-hover:scale-110 transition-transform">check_circle</span>
-            </div>
-            <div className="flex flex-col items-center gap-2 z-10">
-              <span className="material-symbols-outlined text-6xl text-slate-400 drop-shadow-sm font-light group-hover:scale-110 transition-transform duration-300">verified_user</span>
-            </div>
-            <div className="text-center w-full mt-4">
-              <h4 className="font-bold text-text-main text-lg tracking-tight uppercase">Silver</h4>
-              <div className="w-full h-px bg-border-subtle my-2"></div>
-              <p className="text-[10px] text-text-secondary font-mono uppercase">10+ Hours</p>
-            </div>
+        {isLoading ? (
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white border border-border-subtle p-5 h-48 flex items-center justify-center">
+                <span className="material-symbols-outlined animate-spin text-primary">progress_activity</span>
+              </div>
+            ))}
           </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            {rankBadges.map((badge) => {
+              const style = BADGE_STYLES[badge.code] || BADGE_STYLES.BRONZE;
+              const isUnlocked = badge.is_unlocked;
+              const isCurrent = currentRank?.code === badge.code;
+              const tierIndex = RANK_TIERS.indexOf(badge.code as BadgeCode) + 1;
+              const requiredPomodoros = RANK_REQUIREMENTS[badge.code as BadgeCode];
+              const requiredHours = Math.round((requiredPomodoros * 25) / 60);
 
-          {/* Gold - Tier III */}
-          <div className="bg-white border border-border-subtle p-5 flex flex-col items-center justify-between h-48 relative group hover:border-yellow-500 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 shadow-sharp border-b-4 border-b-yellow-500 cursor-pointer">
-            <div className="w-full flex justify-between items-start mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-yellow-500">Tier III</span>
-              <span className="material-symbols-outlined text-base text-primary group-hover:scale-110 transition-transform">check_circle</span>
-            </div>
-            <div className="flex flex-col items-center gap-2 z-10">
-              <span className="material-symbols-outlined text-6xl text-yellow-500 drop-shadow-sm font-light group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">stars</span>
-            </div>
-            <div className="text-center w-full mt-4">
-              <h4 className="font-bold text-text-main text-lg tracking-tight uppercase">Gold</h4>
-              <div className="w-full h-px bg-border-subtle my-2"></div>
-              <p className="text-[10px] text-text-secondary font-mono uppercase">50+ Hours</p>
-            </div>
-          </div>
+              return (
+                <div
+                  key={badge.id}
+                  className={`p-5 flex flex-col items-center justify-between h-48 relative group transition-all duration-300 cursor-pointer
+                    ${isCurrent
+                      ? 'bg-white border-2 border-primary shadow-[0_4px_20px_rgba(255,102,0,0.15)] hover:shadow-[0_8px_30px_rgba(255,102,0,0.25)] hover:scale-[1.03]'
+                      : isUnlocked
+                        ? `bg-white border border-border-subtle shadow-sharp border-b-4 hover:border-[${style.borderColor}] hover:shadow-lg hover:scale-[1.02]`
+                        : 'bg-slate-50 border border-dashed border-slate-300 shadow-sharp hover:border-slate-400 hover:bg-white hover:scale-[1.02] cursor-not-allowed'
+                    }`}
+                  style={isUnlocked && !isCurrent ? { borderBottomColor: style.borderColor } : {}}
+                >
+                  {isCurrent && (
+                    <div className="absolute -right-8 -top-8 size-24 bg-primary/10 rotate-45 pointer-events-none group-hover:bg-primary/15 transition-colors"></div>
+                  )}
 
-          {/* Platinum - Tier IV */}
-          <div className="bg-white border border-border-subtle p-5 flex flex-col items-center justify-between h-48 relative group hover:border-cyan-500 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 shadow-sharp border-b-4 border-b-cyan-500 cursor-pointer">
-            <div className="w-full flex justify-between items-start mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-600">Tier IV</span>
-              <span className="material-symbols-outlined text-base text-primary group-hover:scale-110 transition-transform">check_circle</span>
-            </div>
-            <div className="flex flex-col items-center gap-2 z-10">
-              <span className="material-symbols-outlined text-6xl text-cyan-500 drop-shadow-sm font-light group-hover:scale-110 transition-transform duration-300">military_tech</span>
-            </div>
-            <div className="text-center w-full mt-4">
-              <h4 className="font-bold text-text-main text-lg tracking-tight uppercase">Platinum</h4>
-              <div className="w-full h-px bg-border-subtle my-2"></div>
-              <p className="text-[10px] text-text-secondary font-mono uppercase">100+ Hours</p>
-            </div>
-          </div>
+                  <div className={`w-full flex justify-between items-start mb-2 relative z-10 ${!isUnlocked ? 'opacity-50 group-hover:opacity-70' : ''}`}>
+                    <span className={`text-[10px] font-bold uppercase tracking-widest ${isUnlocked ? (isCurrent ? 'text-primary animate-pulse' : `text-[${style.color}]`) : 'text-text-secondary'}`}>
+                      Tier {tierIndex}
+                    </span>
+                    {isUnlocked ? (
+                      isCurrent ? (
+                        <span className="px-1.5 py-0.5 bg-primary text-white text-[9px] font-bold uppercase tracking-wider shadow-sm">Current</span>
+                      ) : (
+                        <span className="material-symbols-outlined text-base text-primary group-hover:scale-110 transition-transform">check_circle</span>
+                      )
+                    ) : (
+                      <span className="material-symbols-outlined text-base text-slate-400 group-hover:scale-110 transition-transform">lock</span>
+                    )}
+                  </div>
 
-          {/* Diamond - Tier V (Current) */}
-          <div className="bg-white border border-border-subtle p-5 flex flex-col items-center justify-between h-48 relative group border-2 border-primary shadow-[0_4px_20px_rgba(255,102,0,0.15)] hover:shadow-[0_8px_30px_rgba(255,102,0,0.25)] hover:scale-[1.03] transition-all duration-300 overflow-hidden cursor-pointer">
-            <div className="absolute -right-8 -top-8 size-24 bg-primary/10 rotate-45 pointer-events-none group-hover:bg-primary/15 transition-colors"></div>
-            <div className="w-full flex justify-between items-start mb-2 relative z-10">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 animate-pulse">Tier V</span>
-              <span className="px-1.5 py-0.5 bg-primary text-white text-[9px] font-bold uppercase tracking-wider shadow-sm">Current</span>
-            </div>
-            <div className="flex flex-col items-center gap-2 z-10">
-              <span className="material-symbols-outlined text-6xl text-blue-600 drop-shadow-md font-light group-hover:scale-110 group-hover:drop-shadow-xl transition-all duration-300">diamond</span>
-            </div>
-            <div className="text-center w-full mt-4 relative z-10">
-              <h4 className="font-bold text-text-main text-lg tracking-tight uppercase">Diamond</h4>
-              <div className="w-full h-px bg-border-subtle my-2"></div>
-              <p className="text-[10px] text-text-secondary font-mono uppercase">500+ Hours</p>
-            </div>
-          </div>
+                  <div className={`flex flex-col items-center gap-2 z-10 transition-all duration-500 ${!isUnlocked ? 'opacity-30 grayscale group-hover:grayscale-0 group-hover:opacity-60 group-hover:scale-105' : ''}`}>
+                    <span
+                      className={`material-symbols-outlined text-6xl drop-shadow-sm font-light group-hover:scale-110 transition-transform duration-300 ${isCurrent ? 'drop-shadow-md group-hover:drop-shadow-xl' : ''}`}
+                      style={{ color: isUnlocked ? style.color : '#94a3b8' }}
+                    >
+                      {style.icon}
+                    </span>
+                  </div>
 
-          {/* Ascendant - Tier VI (Locked) */}
-          <div className="bg-slate-50 border border-dashed border-slate-300 p-5 flex flex-col items-center justify-between h-48 relative group shadow-sharp hover:border-slate-400 hover:bg-white hover:scale-[1.02] transition-all duration-500 cursor-not-allowed">
-            <div className="w-full flex justify-between items-start mb-2 opacity-50 group-hover:opacity-70 transition-opacity">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary">Tier VI</span>
-              <span className="material-symbols-outlined text-base text-slate-400 group-hover:scale-110 transition-transform">lock</span>
-            </div>
-            <div className="flex flex-col items-center gap-2 z-10 opacity-30 grayscale group-hover:grayscale-0 group-hover:opacity-60 group-hover:scale-105 transition-all duration-500">
-              <span className="material-symbols-outlined text-6xl text-primary drop-shadow-lg font-light">workspace_premium</span>
-            </div>
-            <div className="text-center w-full mt-4 opacity-50 group-hover:opacity-75 transition-opacity duration-500">
-              <h4 className="font-bold text-text-secondary text-lg tracking-tight uppercase">Ascendant</h4>
-              <div className="w-full h-px bg-border-subtle my-2"></div>
-              <p className="text-[10px] text-text-secondary font-mono uppercase">Top 1%</p>
-            </div>
+                  <div className={`text-center w-full mt-4 relative z-10 ${!isUnlocked ? 'opacity-50 group-hover:opacity-75' : ''}`}>
+                    <h4 className={`font-bold text-lg tracking-tight uppercase ${isUnlocked ? 'text-text-main' : 'text-text-secondary'}`}>
+                      {badge.title}
+                    </h4>
+                    <div className="w-full h-px bg-border-subtle my-2"></div>
+                    <p className="text-[10px] text-text-secondary font-mono uppercase">
+                      {requiredHours}+ Hours
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
+        )}
       </section>
     </div>
   );
