@@ -3,6 +3,8 @@ import toast from 'react-hot-toast';
 import { TimerMode } from '../../types';
 import { pomodoroService, settingsService } from '../../services';
 import type { PomodoroSessionResponse, ActiveSessionData, UserSettings, SessionType, TaskResponse } from '../../types';
+import { useSound, useLoopingSound } from '../../hooks';
+import { getAlarmSoundPath, getTickingSoundPath } from '../../utils';
 
 interface TimerDisplayProps {
   initialTask: string;
@@ -30,6 +32,22 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
   const [currentSession, setCurrentSession] = useState<ActiveSessionData | null>(null);
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
   const completingRef = useRef(false); // Prevent duplicate completion calls
+
+  // Sound hooks
+  const alarmSoundPath = userSettings ? getAlarmSoundPath(userSettings.alarm_sound) : null;
+  const tickingSoundPath = userSettings ? getTickingSoundPath(userSettings.ticking_sound) : null;
+
+  const { play: playAlarm } = useSound(alarmSoundPath, {
+    volume: userSettings?.volume || 50,
+    preload: true,
+  });
+
+  // Ticking sound only plays during FOCUS sessions
+  useLoopingSound(
+    tickingSoundPath,
+    isActive && mode === 'focus',
+    userSettings?.volume || 50
+  );
 
   // Fetch user settings and current session
   const fetchData = useCallback(async () => {
@@ -161,6 +179,11 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
 
           const wasFocusSession = currentSession.session_type === 'FOCUS';
           const wasBreakSession = currentSession.session_type === 'SHORT_BREAK' || currentSession.session_type === 'LONG_BREAK';
+
+          // Play alarm sound when session completes
+          if (alarmSoundPath) {
+            playAlarm();
+          }
 
           if (wasFocusSession) {
             toast.success('🎉 Pomodoro completed! Great work!', { duration: 4000 });
