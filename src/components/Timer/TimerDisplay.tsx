@@ -308,21 +308,28 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
         toast.error(errorMsg);
       }
     } else if (!isActive && currentSession) {
-      // Currently paused - resume it
-      try {
-        await pomodoroService.resumeSession();
+      // Check if session is actually paused (not just created and ready)
+      if (currentSession.is_paused) {
+        // Session was running and then paused - resume it
+        try {
+          await pomodoroService.resumeSession();
 
-        // Fetch fresh session data to get accurate remaining_seconds
-        const session = await pomodoroService.getCurrentSession();
-        if (session) {
-          setCurrentSession(session);
-          setSecondsLeft(session.remaining_seconds);
-          setIsActive(true);
-          toast.success('Session resumed');
+          // Fetch fresh session data to get accurate remaining_seconds
+          const session = await pomodoroService.getCurrentSession();
+          if (session) {
+            setCurrentSession(session);
+            setSecondsLeft(session.remaining_seconds);
+            setIsActive(true);
+            toast.success('Session resumed');
+          }
+        } catch (err: any) {
+          const errorMsg = err.response?.data?.message || 'Failed to resume session';
+          toast.error(errorMsg);
         }
-      } catch (err: any) {
-        const errorMsg = err.response?.data?.message || 'Failed to resume session';
-        toast.error(errorMsg);
+      } else {
+        // Session exists but was never started (created by mode change) - just start it
+        setIsActive(true);
+        toast.success('Session started!');
       }
     }
   };
