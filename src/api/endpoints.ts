@@ -68,4 +68,10 @@ export const API_ENDPOINTS = {
         UPDATE: '/user-settings',
         RESET: '/user-settings/reset',
     },
+
+    // Badge System
+    BADGE: {
+        DEFINITIONS: '/badge/definitions',
+        MY_BADGES: '/badge/my-badges',
+    },
 } as const;
