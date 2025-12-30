@@ -2,17 +2,27 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { TimerMode } from '../../types';
 import { pomodoroService, settingsService } from '../../services';
-import type { PomodoroSessionResponse, ActiveSessionData, UserSettings, SessionType } from '../../types';
+import type { PomodoroSessionResponse, ActiveSessionData, UserSettings, SessionType, TaskResponse } from '../../types';
 
 interface TimerDisplayProps {
   initialTask: string;
   onTaskChange: (task: string) => void;
   hasActiveTask: boolean;
   hasAnyTasks: boolean;
+  tasks: TaskResponse[];
   onPomodoroComplete?: () => Promise<void>;
 }
 
-const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, hasActiveTask, hasAnyTasks, onPomodoroComplete }) => {
+// Helper function to check if a date is today
+const isToday = (dateString: string): boolean => {
+  const date = new Date(dateString);
+  const today = new Date();
+  return date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear();
+};
+
+const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, hasActiveTask, hasAnyTasks, tasks, onPomodoroComplete }) => {
   const [mode, setMode] = useState<TimerMode>('focus');
   const [secondsLeft, setSecondsLeft] = useState(25 * 60); // Default: 25 minutes
   const [isActive, setIsActive] = useState(false);
@@ -394,7 +404,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
       </div>
 
       <p className="text-xs font-mono text-text-secondary mt-8 uppercase tracking-wider">
-        DAILY GOAL: <span className="text-primary font-bold">4</span>/8 POMODOROS
+        DAILY GOAL: <span className="text-primary font-bold">{tasks.reduce((sum, task) => sum + (task.completed_pomodoros || 0), 0)}</span>/{userSettings?.daily_goal_pomodoros || 8} POMODOROS
       </p>
     </section>
   );

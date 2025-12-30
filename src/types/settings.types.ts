@@ -24,6 +24,7 @@ export interface UserSettings {
     pomodoro_duration: number;      // 5-60 minutes
     short_break: number;             // 1-15 minutes
     long_break: number;              // 5-45 minutes
+    daily_goal_pomodoros: number;    // 1-20 pomodoros per day
     alarm_sound: AlarmSound;
     ticking_sound: TickingSound;
     volume: number;                  // 0-100%
@@ -38,6 +39,7 @@ export interface UpdateUserSettingsDto {
     pomodoro_duration?: number;
     short_break?: number;
     long_break?: number;
+    daily_goal_pomodoros?: number;
     alarm_sound?: AlarmSound;
     ticking_sound?: TickingSound;
     volume?: number;
@@ -69,6 +71,7 @@ export const DEFAULT_SETTINGS: Omit<UserSettings, 'id' | 'created_at' | 'updated
     pomodoro_duration: 25,
     short_break: 5,
     long_break: 15,
+    daily_goal_pomodoros: 1,
     alarm_sound: AlarmSound.BELLS,
     ticking_sound: TickingSound.NONE,
     volume: 50,

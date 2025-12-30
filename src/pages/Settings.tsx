@@ -19,6 +19,7 @@ const Settings: React.FC = () => {
   const [pomodoroDuration, setPomodoroDuration] = useState(25);
   const [shortBreak, setShortBreak] = useState(5);
   const [longBreak, setLongBreak] = useState(15);
+  const [dailyGoalPomodoros, setDailyGoalPomodoros] = useState(1);
   const [alarmSound, setAlarmSound] = useState<AlarmSound>(AlarmSound.BELLS);
   const [tickingSound, setTickingSound] = useState<TickingSound>(TickingSound.NONE);
   const [volume, setVolume] = useState(50);
@@ -41,6 +42,7 @@ const Settings: React.FC = () => {
       setPomodoroDuration(data.pomodoro_duration);
       setShortBreak(data.short_break);
       setLongBreak(data.long_break);
+      setDailyGoalPomodoros(data.daily_goal_pomodoros);
       setAlarmSound(data.alarm_sound);
       setTickingSound(data.ticking_sound);
       setVolume(data.volume);
@@ -64,6 +66,7 @@ const Settings: React.FC = () => {
         pomodoro_duration: pomodoroDuration,
         short_break: shortBreak,
         long_break: longBreak,
+        daily_goal_pomodoros: dailyGoalPomodoros,
         alarm_sound: alarmSound,
         ticking_sound: tickingSound,
         volume: volume,
@@ -100,6 +103,7 @@ const Settings: React.FC = () => {
       setPomodoroDuration(resetSettings.pomodoro_duration);
       setShortBreak(resetSettings.short_break);
       setLongBreak(resetSettings.long_break);
+      setDailyGoalPomodoros(resetSettings.daily_goal_pomodoros);
       setAlarmSound(resetSettings.alarm_sound);
       setTickingSound(resetSettings.ticking_sound);
       setVolume(resetSettings.volume);
@@ -295,6 +299,49 @@ const Settings: React.FC = () => {
                   <span>5m</span>
                   <span>4h</span>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 shadow-sharp border border-border-subtle">
+            <div className="flex flex-col gap-4">
+              <div className="flex w-full items-center justify-between">
+                <div className="flex flex-col flex-1">
+                  <p className="text-text-main text-base font-medium">Daily Goal</p>
+                  <p className="text-text-secondary text-xs mt-1">Target pomodoros per day (1-20)</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={dailyGoalPomodoros}
+                    onChange={(e) => setDailyGoalPomodoros(e.target.value === '' ? '' : Number(e.target.value))}
+                    onBlur={(e) => {
+                      const val = Number(e.target.value);
+                      if (!val || val < 1) setDailyGoalPomodoros(1);
+                      else if (val > 20) setDailyGoalPomodoros(20);
+                    }}
+                    disabled={saving}
+                    className="w-20 px-3 py-1.5 text-sm font-bold text-text-main text-center border border-border-subtle focus:border-primary focus:outline-none"
+                  />
+                  <span className="text-text-secondary text-xs font-medium">pomodoros</span>
+                </div>
+              </div>
+              <div className="flex h-6 w-full items-center">
+                <input
+                  className="w-full h-2 bg-border-subtle appearance-none cursor-pointer accent-primary"
+                  max="20"
+                  min="1"
+                  type="range"
+                  value={dailyGoalPomodoros}
+                  onChange={(e) => setDailyGoalPomodoros(Number(e.target.value))}
+                  disabled={saving}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-text-secondary font-mono">
+                <span>1</span>
+                <span>20</span>
               </div>
             </div>
           </div>
