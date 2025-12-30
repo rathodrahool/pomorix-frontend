@@ -351,18 +351,13 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
         )}
       </div>
 
-      {/* Task Input */}
-      <div className="w-full relative group mb-8">
-        <input
-          className="w-full bg-transparent border-none text-center py-2 px-4 text-3xl md:text-4xl font-display font-bold text-text-main placeholder-gray-300 outline-none transition-all"
-          placeholder="What are you working on?"
-          type="text"
-          value={taskInput}
-          onChange={(e) => setTaskInput(e.target.value)}
-          onBlur={() => onTaskChange(taskInput)}
-        />
+      {/* Task Display (Read-only) */}
+      <div className="w-full relative mb-8">
+        <div className="w-full bg-transparent text-center py-2 px-4 text-3xl md:text-4xl font-display font-bold text-text-main transition-all">
+          {taskInput || "What are you working on?"}
+        </div>
         <div className="flex justify-center mt-2">
-          <div className="h-0.5 w-1/4 bg-primary/20 group-focus-within:w-1/2 group-focus-within:bg-primary transition-all"></div>
+          <div className="h-0.5 w-1/4 bg-primary/20 transition-all"></div>
         </div>
       </div>
 
