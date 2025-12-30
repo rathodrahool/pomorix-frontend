@@ -287,7 +287,7 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                   </button>
                   <div className="flex flex-col flex-1">
                     {editingTaskId === task.id ? (
-                      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex gap-2 flex-1" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="text"
                           value={editingTitle}
@@ -330,6 +330,20 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                           className="w-16 border border-primary px-2 py-1.5 text-base font-medium text-center focus:outline-none focus:ring-2 focus:ring-primary/20"
                           title="Pomodoros"
                         />
+                        <button
+                          onClick={(e) => { e.stopPropagation(); saveEdit(); }}
+                          className="px-3 py-1.5 bg-primary text-white hover:bg-primary-dark transition-colors text-sm font-medium flex items-center gap-1"
+                          title="Save (Enter)"
+                        >
+                          <span className="material-symbols-outlined !text-[18px]">check</span>
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); cancelEdit(); }}
+                          className="px-3 py-1.5 bg-gray-200 text-text-secondary hover:bg-gray-300 transition-colors text-sm font-medium flex items-center gap-1"
+                          title="Cancel (Esc)"
+                        >
+                          <span className="material-symbols-outlined !text-[18px]">close</span>
+                        </button>
                       </div>
                     ) : (
                       <>
