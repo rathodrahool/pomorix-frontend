@@ -60,20 +60,6 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
     }
   };
 
-  const handleToggleTask = async (id: string) => {
-    const task = tasks.find(t => t.id === id);
-    const wasCompleted = task?.is_completed;
-
-    try {
-      const response = await apiClient.patch(API_ENDPOINTS.TASKS.TOGGLE_COMPLETE(id));
-      await fetchTasks(); // Refresh the list
-      toast.success(response.data.message || (wasCompleted ? 'Task marked as incomplete' : 'Task completed! 🎉'));
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.message || 'Failed to update task';
-      toast.error(errorMsg);
-    }
-  };
-
   const handleDeleteTask = (task: any) => {
     setTaskToDelete({ id: task.id, title: task.title });
     setDeleteModalOpen(true);
@@ -209,7 +195,23 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                 max="20"
                 className="w-20 bg-surface border-y border-gray-300 text-text-main text-center focus:ring-0 focus:border-primary h-14 text-base font-medium transition-all"
                 value={newTaskPomodoros}
-                onChange={(e) => setNewTaskPomodoros(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') {
+                    setNewTaskPomodoros('' as any); // Allow empty for editing
+                  } else {
+                    const num = parseInt(val);
+                    if (!isNaN(num)) {
+                      setNewTaskPomodoros(Math.max(1, Math.min(20, num)));
+                    }
+                  }
+                }}
+                onBlur={(e) => {
+                  // Ensure valid value on blur
+                  if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                    setNewTaskPomodoros(1);
+                  }
+                }}
                 disabled={isCreating || loading}
                 title="Estimated Pomodoros"
               />
@@ -262,16 +264,14 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                   } ${task.is_completed ? 'hover:bg-bg-page cursor-default' : ''}`}
               >
                 <div className="flex items-center gap-4">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleToggleTask(task.id); }}
-                    disabled={loading || editingTaskId === task.id}
-                    className={`size-5 border-2 transition-colors flex items-center justify-center ${task.is_completed ? 'bg-primary border-primary text-white' : 'border-gray-300 hover:border-primary hover:bg-primary/10'} disabled:opacity-50`}
+                  <div
+                    className={`size-5 border-2 transition-colors flex items-center justify-center ${task.is_completed ? 'bg-primary border-primary text-white' : 'border-gray-300'} cursor-default`}
                   >
                     {task.is_completed && <span className="material-symbols-outlined !text-[14px]">check</span>}
-                  </button>
+                  </div>
                   <div className="flex flex-col flex-1">
                     {editingTaskId === task.id ? (
-                      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex gap-2 flex-1" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="text"
                           value={editingTitle}
@@ -289,7 +289,23 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                           min="1"
                           max="20"
                           value={editingPomodoros}
-                          onChange={(e) => setEditingPomodoros(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === '') {
+                              setEditingPomodoros('' as any); // Allow empty for editing
+                            } else {
+                              const num = parseInt(val);
+                              if (!isNaN(num)) {
+                                setEditingPomodoros(Math.max(1, Math.min(20, num)));
+                              }
+                            }
+                          }}
+                          onBlur={(e) => {
+                            // Ensure valid value on blur
+                            if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                              setEditingPomodoros(1);
+                            }
+                          }}
                           onClick={(e) => e.stopPropagation()}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') saveEdit();
@@ -298,6 +314,20 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
                           className="w-16 border border-primary px-2 py-1.5 text-base font-medium text-center focus:outline-none focus:ring-2 focus:ring-primary/20"
                           title="Pomodoros"
                         />
+                        <button
+                          onClick={(e) => { e.stopPropagation(); saveEdit(); }}
+                          className="px-3 py-1.5 bg-primary text-white hover:bg-primary-dark transition-colors text-sm font-medium flex items-center gap-1"
+                          title="Save (Enter)"
+                        >
+                          <span className="material-symbols-outlined !text-[18px]">check</span>
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); cancelEdit(); }}
+                          className="px-3 py-1.5 bg-gray-200 text-text-secondary hover:bg-gray-300 transition-colors text-sm font-medium flex items-center gap-1"
+                          title="Cancel (Esc)"
+                        >
+                          <span className="material-symbols-outlined !text-[18px]">close</span>
+                        </button>
                       </div>
                     ) : (
                       <>

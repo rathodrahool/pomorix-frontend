@@ -36,8 +36,8 @@ const Home: React.FC = () => {
       {/* Left Sidebar - Stats (Animated slide from left) */}
       <aside
         className={`hidden xl:flex flex-col w-[300px] border-r border-border-subtle bg-bg-page overflow-y-auto shrink-0 transition-all duration-300 ease-in-out ${isFocusMode
-            ? 'max-w-0 opacity-0 -ml-[300px]'
-            : 'max-w-[300px] opacity-100 ml-0'
+          ? 'max-w-0 opacity-0 -ml-[300px]'
+          : 'max-w-[300px] opacity-100 ml-0'
           }`}
       >
         <StatsSidebar />
@@ -51,6 +51,7 @@ const Home: React.FC = () => {
             onTaskChange={setCurrentTask}
             hasActiveTask={hasActiveTask}
             hasAnyTasks={hasAnyTasks}
+            tasks={tasks}
             onPomodoroComplete={handlePomodoroComplete}
           />
           <TaskList sharedTasks={tasks} sharedLoading={loading} onRefresh={fetchTasks} />
@@ -60,8 +61,8 @@ const Home: React.FC = () => {
       {/* Right Sidebar - Live Feed (Animated slide from right) */}
       <aside
         className={`hidden lg:flex flex-col w-[350px] border-l border-border-subtle bg-bg-page overflow-y-auto shrink-0 transition-all duration-300 ease-in-out ${isFocusMode
-            ? 'max-w-0 opacity-0 -mr-[350px]'
-            : 'max-w-[350px] opacity-100 mr-0'
+          ? 'max-w-0 opacity-0 -mr-[350px]'
+          : 'max-w-[350px] opacity-100 mr-0'
           }`}
       >
         <LiveFeed />

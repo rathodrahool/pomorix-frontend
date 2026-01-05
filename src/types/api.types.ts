@@ -178,6 +178,13 @@ export interface StreakResponseDto {
     last_active_date: string | null;
 }
 
+export interface TotalStatsResponseDto {
+    total_pomodoros: number;
+    total_hours: number;
+    total_minutes: number;
+    today_pomodoros: number;
+}
+
 // ==================== Live Hall API Types ====================
 
 export interface LiveUserResponse {
