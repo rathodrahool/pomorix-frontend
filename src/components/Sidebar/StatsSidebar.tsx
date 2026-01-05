@@ -9,11 +9,8 @@ const StatsSidebar: React.FC = () => {
   const { stats: totalStats, loading: statsLoading } = useTotalStats();
   const { data: badges, isLoading: badgesLoading } = useBadgeDefinitions();
 
-  // Calculate progress toward next milestone (14 days)
-  const nextMilestone = 14;
+  // Get current streak count
   const currentStreak = streak?.current_streak || 0;
-  const progress = Math.min((currentStreak / nextMilestone) * 100, 100);
-  const daysRemaining = Math.max(nextMilestone - currentStreak, 0);
 
   // Calculate current rank and next badge
   const { currentRank, nextBadge, badgeProgress } = useMemo(() => {
@@ -76,7 +73,7 @@ const StatsSidebar: React.FC = () => {
           <h3 className="text-xs font-bold uppercase tracking-wider text-text-secondary">Current Streak</h3>
           <span className="material-symbols-outlined text-primary text-xl animate-pulse">local_fire_department</span>
         </div>
-        <div className="flex items-baseline gap-2 mb-4 relative z-10">
+        <div className="flex items-baseline gap-2 relative z-10">
           {loading ? (
             <div className="h-12 w-20 bg-gray-200 animate-pulse rounded"></div>
           ) : (
@@ -85,24 +82,6 @@ const StatsSidebar: React.FC = () => {
               <span className="text-sm text-text-secondary font-bold uppercase">days</span>
             </>
           )}
-        </div>
-        <div className="relative z-10 space-y-2">
-          <div className="flex justify-between items-end">
-            <span className="text-[10px] font-mono text-text-secondary">NEXT: {nextMilestone} DAYS</span>
-            <span className="text-[10px] font-bold text-primary">{Math.round(progress)}%</span>
-          </div>
-          <div className="w-full bg-[#f0f0f0] h-2 border border-[#f0f0f0]">
-            <div className="bg-primary h-full relative overflow-hidden transition-all duration-300" style={{ width: `${progress}%` }}>
-              <div className="absolute inset-0 bg-white/30 skew-x-12 w-full -translate-x-full animate-[shine_2s_infinite]"></div>
-            </div>
-          </div>
-          <p className="text-[10px] text-text-secondary leading-tight pt-1">
-            {daysRemaining > 0 ? (
-              <>Maintain your streak for <span className="text-text-main font-bold">{daysRemaining} more {daysRemaining === 1 ? 'day' : 'days'}</span> to unlock the Fortnight badge.</>
-            ) : (
-              <>🎉 <span className="text-text-main font-bold">Congratulations!</span> You've reached the Fortnight milestone!</>
-            )}
-          </p>
         </div>
       </div>
 
