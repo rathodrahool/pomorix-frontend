@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import { TimerMode } from '../../types';
 import { pomodoroService, settingsService } from '../../services';
 import type { PomodoroSessionResponse, ActiveSessionData, UserSettings, SessionType, TaskResponse } from '../../types';
-import { useSound, useLoopingSound, useTabTitle } from '../../hooks';
+import { useSound, useLoopingSound, useTabTitle, useTotalStats } from '../../hooks';
 import { getAlarmSoundPath, getTickingSoundPath } from '../../utils';
 
 interface TimerDisplayProps {
@@ -32,6 +32,9 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
   const [currentSession, setCurrentSession] = useState<ActiveSessionData | null>(null);
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
   const completingRef = useRef(false); // Prevent duplicate completion calls
+
+  // Fetch total stats including today's pomodoros
+  const { stats: totalStats } = useTotalStats();
 
   // Sound hooks
   const alarmSoundPath = userSettings ? getAlarmSoundPath(userSettings.alarm_sound) : null;
@@ -441,8 +444,16 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
         </button>
       </div>
 
+      {/* Daily Goal Display */}
       <p className="text-xs font-mono text-text-secondary mt-8 uppercase tracking-wider">
-        DAILY GOAL: <span className="text-primary font-bold">{tasks.reduce((sum, task) => sum + (task.completed_pomodoros || 0), 0)}</span>/{userSettings?.daily_goal_pomodoros || 8} POMODOROS
+        DAILY GOAL: <span
+          className={`font-bold transition-all duration-300 ${totalStats && userSettings && totalStats.today_pomodoros >= userSettings.daily_goal_pomodoros
+            ? 'text-green-600 animate-pulse drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]'
+            : 'text-primary'
+            }`}
+        >
+          {totalStats?.today_pomodoros || 0}
+        </span>/{userSettings?.daily_goal_pomodoros || 8} POMODOROS
       </p>
     </section>
   );
