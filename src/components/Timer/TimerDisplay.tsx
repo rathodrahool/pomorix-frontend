@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import { TimerMode } from '../../types';
 import { pomodoroService, settingsService } from '../../services';
 import type { PomodoroSessionResponse, ActiveSessionData, UserSettings, SessionType, TaskResponse } from '../../types';
-import { useSound, useLoopingSound } from '../../hooks';
+import { useSound, useLoopingSound, useTabTitle } from '../../hooks';
 import { getAlarmSoundPath, getTickingSoundPath } from '../../utils';
 
 interface TimerDisplayProps {
@@ -48,6 +48,14 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
     isActive && mode === 'focus',
     userSettings?.volume || 50
   );
+
+  // Update browser tab title with timer
+  useTabTitle({
+    isActive,
+    mode,
+    secondsLeft,
+    enabled: true
+  });
 
   // Fetch user settings and current session
   const fetchData = useCallback(async () => {
