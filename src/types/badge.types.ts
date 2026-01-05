@@ -5,6 +5,13 @@
 // Badge category enum
 export type BadgeCategory = 'VOLUME' | 'STREAK' | 'ONBOARDING' | 'INTENSITY';
 
+// Badge rule type enum
+export enum BadgeRuleType {
+    SESSION_COUNT = 'SESSION_COUNT',
+    STREAK_COUNT = 'STREAK_COUNT',
+    DAILY_COUNT = 'DAILY_COUNT',
+}
+
 // Badge code representing specific badges
 export type BadgeCode =
     // Volume tiers
@@ -23,6 +30,8 @@ export interface BadgeDefinitionResponse {
     title: string;
     description: string;
     category: BadgeCategory;
+    rule_type: BadgeRuleType;
+    rule_value: number;
     is_unlocked: boolean;
     unlocked_at?: string; // ISO timestamp, only present if unlocked
 }
@@ -34,6 +43,8 @@ export interface UserBadgeResponse {
     title: string;
     description: string;
     category: BadgeCategory;
+    rule_type: BadgeRuleType;
+    rule_value: number;
     unlocked_at: string; // ISO timestamp
 }
 

@@ -1,7 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { useStreak, useTotalStats, useBadgeDefinitions } from '../../hooks';
-import { RANK_TIERS, RANK_REQUIREMENTS, type BadgeCode } from '../../types';
+import { RANK_TIERS, BadgeRuleType, type BadgeCode } from '../../types';
 
 
 const StatsSidebar: React.FC = () => {
@@ -25,8 +25,10 @@ const StatsSidebar: React.FC = () => {
       };
     }
 
-    // Filter rank tier badges (VOLUME category)
-    const rankBadges = badges.filter(b => b.category === 'VOLUME');
+    // Filter rank tier badges (VOLUME category + SESSION_COUNT rule type)
+    const rankBadges = badges.filter(
+      b => b.category === 'VOLUME' && b.rule_type === BadgeRuleType.SESSION_COUNT
+    );
 
     // Get unlocked rank badges sorted by tier
     const unlockedRanks = rankBadges
@@ -44,10 +46,10 @@ const StatsSidebar: React.FC = () => {
     const nextBadgeCode = RANK_TIERS[currentIndex + 1];
     const next = nextBadgeCode ? rankBadges.find(b => b.code === nextBadgeCode) : null;
 
-    // Calculate progress to next badge using real pomodoro count
+    // Calculate progress to next badge using real pomodoro count and dynamic rule_value
     let progressPercent = 0;
     if (next && totalStats) {
-      const required = RANK_REQUIREMENTS[next.code as BadgeCode];
+      const required = next.rule_value; // Use dynamic rule_value from backend
       progressPercent = Math.min((totalStats.total_pomodoros / required) * 100, 100);
     } else {
       // Max rank achieved
