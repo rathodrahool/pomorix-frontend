@@ -1,12 +1,12 @@
 
-
 import React, { useMemo } from 'react';
-import { useStreak, useBadgeDefinitions } from '../../hooks';
+import { useStreak, useTotalStats, useBadgeDefinitions } from '../../hooks';
 import { RANK_TIERS, RANK_REQUIREMENTS, type BadgeCode } from '../../types';
 
 
 const StatsSidebar: React.FC = () => {
   const { streak, loading: streakLoading } = useStreak();
+  const { stats: totalStats, loading: statsLoading } = useTotalStats();
   const { data: badges, isLoading: badgesLoading } = useBadgeDefinitions();
 
   // Calculate progress toward next milestone (14 days)
@@ -16,13 +16,12 @@ const StatsSidebar: React.FC = () => {
   const daysRemaining = Math.max(nextMilestone - currentStreak, 0);
 
   // Calculate current rank and next badge
-  const { currentRank, nextBadge, badgeProgress, currentPomodoros } = useMemo(() => {
+  const { currentRank, nextBadge, badgeProgress } = useMemo(() => {
     if (!badges) {
       return {
         currentRank: null,
         nextBadge: null,
         badgeProgress: 0,
-        currentPomodoros: 0
       };
     }
 
@@ -45,14 +44,11 @@ const StatsSidebar: React.FC = () => {
     const nextBadgeCode = RANK_TIERS[currentIndex + 1];
     const next = nextBadgeCode ? rankBadges.find(b => b.code === nextBadgeCode) : null;
 
-    // Calculate pomodoros based on current rank
-    const currentPomos = current ? RANK_REQUIREMENTS[current.code as BadgeCode] : 0;
-
-    // Calculate progress to next badge
+    // Calculate progress to next badge using real pomodoro count
     let progressPercent = 0;
-    if (next) {
+    if (next && totalStats) {
       const required = RANK_REQUIREMENTS[next.code as BadgeCode];
-      progressPercent = Math.min((currentPomos / required) * 100, 100);
+      progressPercent = Math.min((totalStats.total_pomodoros / required) * 100, 100);
     } else {
       // Max rank achieved
       progressPercent = 100;
@@ -62,11 +58,10 @@ const StatsSidebar: React.FC = () => {
       currentRank: current,
       nextBadge: next,
       badgeProgress: progressPercent,
-      currentPomodoros: currentPomos
     };
-  }, [badges]);
+  }, [badges, totalStats]);
 
-  const loading = streakLoading || badgesLoading;
+  const loading = streakLoading || badgesLoading || statsLoading;
 
   return (
     <div className="flex flex-col h-full">
@@ -113,13 +108,13 @@ const StatsSidebar: React.FC = () => {
       <div className="grid grid-cols-2 border-b border-border-subtle bg-[#fafafa]">
         <div className="p-4 border-r border-border-subtle flex flex-col items-center justify-center gap-1 hover:bg-white transition-colors">
           <span className="text-xl font-bold text-text-main font-mono">
-            {loading ? '...' : Math.round((currentPomodoros * 25) / 60)}
+            {loading ? '...' : totalStats?.total_hours || 0}
           </span>
           <span className="text-[9px] uppercase font-bold text-text-secondary tracking-wide">Hours</span>
         </div>
         <div className="p-4 flex flex-col items-center justify-center gap-1 hover:bg-white transition-colors">
           <span className="text-xl font-bold text-text-main font-mono">
-            {loading ? '...' : currentPomodoros}
+            {loading ? '...' : totalStats?.total_pomodoros || 0}
           </span>
           <span className="text-[9px] uppercase font-bold text-text-secondary tracking-wide">Pomos</span>
         </div>

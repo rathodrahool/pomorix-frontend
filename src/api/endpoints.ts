@@ -60,6 +60,7 @@ export const API_ENDPOINTS = {
     // Streak
     STREAK: {
         GET: '/streak',
+        TOTAL_STATS: '/streak/total-stats',
     },
 
     // User Settings
