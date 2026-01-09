@@ -1,7 +1,8 @@
 
-import React, { useState, createContext, useContext } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useStreak } from '../hooks';
+import { globalService } from '../services';
 
 // Focus Mode Context
 interface FocusModeContextType {
@@ -95,10 +96,32 @@ const Header: React.FC<HeaderProps> = ({ isFocusMode, toggleFocusMode }) => {
 
 const Layout: React.FC = () => {
   const [isFocusMode, setIsFocusMode] = useState(true); // Default: ON (minimalist)
+  const [onlineCount, setOnlineCount] = useState(0);
 
   const toggleFocusMode = () => {
     setIsFocusMode(prev => !prev);
   };
+
+  // Fetch online count
+  const fetchOnlineCount = async () => {
+    try {
+      const count = await globalService.getOnlineCount();
+      setOnlineCount(count);
+    } catch (err) {
+      console.error('Failed to fetch online count:', err);
+    }
+  };
+
+  // Poll online count every 15 seconds
+  useEffect(() => {
+    // Initial fetch
+    fetchOnlineCount();
+
+    // Poll every 15 seconds
+    const interval = setInterval(fetchOnlineCount, 15000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <FocusModeContext.Provider value={{ isFocusMode, toggleFocusMode }}>
@@ -113,7 +136,7 @@ const Layout: React.FC = () => {
               <span className="animate-ping absolute inline-flex h-full w-full bg-green-500 opacity-75"></span>
               <span className="relative inline-flex h-2 w-2 bg-green-600"></span>
             </span>
-            <span><strong className="text-text-main">1,240</strong> people are focusing right now.</span>
+            <span><strong className="text-text-main">{onlineCount.toLocaleString()}</strong> people are focusing right now.</span>
           </div>
         </footer>
       </div>

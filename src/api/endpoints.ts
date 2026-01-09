@@ -75,4 +75,10 @@ export const API_ENDPOINTS = {
         DEFINITIONS: '/badge/definitions',
         MY_BADGES: '/badge/my-badges',
     },
+
+    // Global Feed
+    GLOBAL: {
+        FEED: '/global/feed',
+        ONLINE_COUNT: '/global/online-count',
+    },
 } as const;
