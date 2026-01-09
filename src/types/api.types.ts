@@ -201,6 +201,33 @@ export interface UpdateStatusRequest {
     message?: string;
 }
 
+// ==================== Global Feed API Types ====================
+
+export interface GlobalFeedItem {
+    user: {
+        id: string;
+        email: string;
+    };
+    task: {
+        id: string;
+        title: string;
+    };
+    session: {
+        state: 'FOCUS' | 'BREAK' | 'COMPLETED' | 'ABORTED';
+        ended_at: string | null;
+        updated_at: string;
+    };
+}
+
+export interface GlobalFeedResponse {
+    online_count: number;
+    items: GlobalFeedItem[];
+}
+
+export interface OnlineCountResponse {
+    online_count: number;
+}
+
 // ==================== Pomodoro Session API Types ====================
 
 export type PomodoroSessionState = 'FOCUS' | 'BREAK' | 'COMPLETED' | 'ABORTED';

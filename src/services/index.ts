@@ -6,3 +6,5 @@ export { pomodoroService } from './pomodoro.service';
 export { streakService } from './streak.service';
 export { settingsService } from './settings.service';
 export { badgeService } from './badge.service';
+export { globalService } from './global.service';
+
