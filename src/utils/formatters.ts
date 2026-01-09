@@ -70,4 +70,16 @@ export const formatters = {
     formatHours(hours: number): string {
         return `${hours.toFixed(1)} hour${hours !== 1 ? 's' : ''}`;
     },
+
+    /**
+     * Format member since date (e.g., "Jan 2023")
+     */
+    formatMemberSince(date: Date | string): string {
+        const d = typeof date === 'string' ? new Date(date) : date;
+        return d.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+        });
+    },
 };
+

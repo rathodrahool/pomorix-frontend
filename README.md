@@ -1,4 +1,4 @@
-# Pomorix - Global Study Hall
+# Pomorix
 
 A modular Pomodoro timer application with social features, built with React, TypeScript, and Vite.
 

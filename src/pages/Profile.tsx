@@ -1,18 +1,12 @@
 
 import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { useBadgeDefinitions } from '../hooks';
-import { RANK_TIERS, RANK_REQUIREMENTS, type BadgeCode } from '../types';
+import { useBadgeDefinitions, useProfile } from '../hooks';
+import { RANK_TIERS, RANK_REQUIREMENTS, type BadgeCode, type ProfileAnalyticsRange } from '../types';
+import { formatters } from '../utils';
 
-const data = [
-  { name: 'Mon', hours: 2.5 },
-  { name: 'Tue', hours: 4.1 },
-  { name: 'Wed', hours: 1.8 },
-  { name: 'Thu', hours: 5.5 },
-  { name: 'Fri', hours: 3.2 },
-  { name: 'Sat', hours: 1.2 },
-  { name: 'Sun', hours: 3.8 },
-];
+
+
 
 // Badge tier colors and icons
 const BADGE_STYLES: Record<string, { color: string; icon: string; borderColor: string; }> = {
@@ -24,8 +18,18 @@ const BADGE_STYLES: Record<string, { color: string; icon: string; borderColor: s
   ASCENDANT: { color: '#ff6600', icon: 'workspace_premium', borderColor: '#ff6600' },
 };
 
+// Map range values to display names
+const RANGE_OPTIONS: { value: ProfileAnalyticsRange; label: string }[] = [
+  { value: 'LAST_7_DAYS', label: 'Last 7 Days' },
+  { value: 'LAST_30_DAYS', label: 'Last 30 Days' },
+  { value: 'ALL_TIME', label: 'All Time' },
+];
+
 const Profile: React.FC = () => {
-  const { data: badges, isLoading } = useBadgeDefinitions();
+  const { data: badges, isLoading: badgesLoading } = useBadgeDefinitions();
+  const { profile, isLoading: profileLoading, range, setRange } = useProfile('LAST_7_DAYS');
+
+  const isLoading = badgesLoading || profileLoading;
 
   // Calculate current rank and tier badges
   const { currentRank, rankBadges, totalPomodoros } = useMemo(() => {
@@ -60,7 +64,28 @@ const Profile: React.FC = () => {
     };
   }, [badges]);
 
-  const totalHours = Math.round((totalPomodoros * 25) / 60);
+  // Format helper functions
+  const formatHoursDisplay = (hours: number): string => {
+    if (hours < 1) return `${Math.round(hours * 60)}m`;
+    return `${hours.toFixed(1)}h`;
+  };
+
+  const formatPercentileDisplay = (percentile: number): string => {
+    const topPercent = Math.round(100 - percentile);
+    return `Top ${topPercent}%`;
+  };
+
+  const formatChangePercent = (percent: number): { text: string; isPositive: boolean } => {
+    const isPositive = percent >= 0;
+    const arrow = isPositive ? '↑' : '↓';
+    return {
+      text: `${arrow} ${Math.abs(percent).toFixed(0)}%`,
+      isPositive
+    };
+  };
+
+  // Get current day of week for highlighting (e.g., "Thu")
+  const currentDayOfWeek = new Date().toLocaleDateString('en-US', { weekday: 'short' });
 
   return (
     <div className="max-w-[1024px] mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
@@ -73,20 +98,26 @@ const Profile: React.FC = () => {
           </div>
           <div className="flex flex-col h-full justify-between w-full">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-text-main tracking-tight font-display">FocusMaster99</h2>
-              <p className="text-primary font-mono text-xs mt-1">user_id: 849201</p>
-              <p className="text-text-secondary text-sm mt-3">Member since Jan 2023</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-text-main tracking-tight font-display">
+                {profile?.user.username || 'Loading...'}
+              </h2>
+              <p className="text-primary font-mono text-xs mt-1">
+                user_id: {profile?.user.id ? profile.user.id.substring(0, 8) : '...'}
+              </p>
+              <p className="text-text-secondary text-sm mt-3">
+                Member since {profile?.user.member_since ? formatters.formatMemberSince(profile.user.member_since) : '...'}
+              </p>
             </div>
             <div className="mt-6 pt-6 border-t border-border-subtle flex gap-8">
               <div>
                 <span className="block text-xl font-bold font-mono">
-                  {isLoading ? '...' : totalPomodoros}
+                  {isLoading ? '...' : profile?.lifetime_stats.total_sessions || 0}
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary">Total Sessions</span>
               </div>
               <div>
                 <span className="block text-xl font-bold font-mono">
-                  {isLoading ? '...' : `${totalHours}h`}
+                  {isLoading ? '...' : formatHoursDisplay(profile?.lifetime_stats.total_hours || 0)}
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary">Total Hours</span>
               </div>
@@ -98,10 +129,12 @@ const Profile: React.FC = () => {
           <div className="absolute top-0 left-0 w-full h-1 bg-primary group-hover:h-2 transition-all"></div>
           <span className="material-symbols-outlined text-4xl text-primary mb-3">local_fire_department</span>
           <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary mb-2">Current Streak</span>
-          <div className="text-6xl font-bold font-mono text-text-main mb-2">12</div>
+          <div className="text-6xl font-bold font-mono text-text-main mb-2">
+            {isLoading ? '...' : profile?.streak.current_streak || 0}
+          </div>
           <div className="text-text-secondary text-sm font-medium">Days</div>
           <div className="mt-4 inline-block px-2 py-1 bg-bg-page text-[10px] font-mono text-text-secondary border border-border-subtle">
-            PB: 15 DAYS
+            PB: {profile?.streak.longest_streak || 0} DAYS
           </div>
         </div>
       </div>
@@ -112,10 +145,14 @@ const Profile: React.FC = () => {
           <h3 className="text-lg font-bold border-l-4 border-primary pl-3 leading-none text-text-main font-display">Analytics</h3>
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono text-text-secondary">RANGE:</span>
-            <select className="bg-transparent text-xs font-mono text-text-main border-none outline-none cursor-pointer hover:text-primary focus:ring-0 py-0 pr-8">
-              <option>Last 7 Days</option>
-              <option>Last 30 Days</option>
-              <option>All Time</option>
+            <select
+              className="bg-transparent text-xs font-mono text-text-main border-none outline-none cursor-pointer hover:text-primary focus:ring-0 py-0 pr-8"
+              value={range}
+              onChange={(e) => setRange(e.target.value as ProfileAnalyticsRange)}
+            >
+              {RANGE_OPTIONS.map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -129,11 +166,16 @@ const Profile: React.FC = () => {
               </div>
               <div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold font-mono text-text-main">24.5</span>
+                  <span className="text-3xl font-bold font-mono text-text-main">
+                    {isLoading ? '...' : profile?.analytics.focus_time_hours.toFixed(1) || '0.0'}
+                  </span>
                   <span className="text-sm text-text-secondary font-mono">h</span>
                 </div>
-                <div className="mt-2 text-xs text-primary font-mono flex items-center gap-1">
-                  <span className="material-symbols-outlined text-xs">arrow_upward</span> 12%
+                <div className={`mt-2 text-xs font-mono flex items-center gap-1 ${profile && formatChangePercent(profile.analytics.focus_time_change_percent).isPositive
+                  ? 'text-primary'
+                  : 'text-red-500'
+                  }`}>
+                  {profile && formatChangePercent(profile.analytics.focus_time_change_percent).text}
                 </div>
               </div>
             </div>
@@ -147,11 +189,13 @@ const Profile: React.FC = () => {
               </div>
               <div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold font-mono text-text-main">3.5</span>
+                  <span className="text-3xl font-bold font-mono text-text-main">
+                    {isLoading ? '...' : profile?.analytics.daily_avg_hours.toFixed(1) || '0.0'}
+                  </span>
                   <span className="text-sm text-text-secondary font-mono">h/d</span>
                 </div>
                 <div className="mt-2 text-xs text-text-secondary font-mono flex items-center gap-1">
-                  Goal: 3.0h
+                  Goal: {profile?.analytics.daily_goal_hours.toFixed(1) || '0.0'}h
                 </div>
               </div>
             </div>
@@ -165,10 +209,12 @@ const Profile: React.FC = () => {
               </div>
               <div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold font-mono text-text-main">42</span>
+                  <span className="text-3xl font-bold font-mono text-text-main">
+                    {isLoading ? '...' : profile?.analytics.total_sessions || 0}
+                  </span>
                 </div>
                 <div className="mt-2 text-xs text-text-secondary font-mono flex items-center gap-1">
-                  Top 15%
+                  {profile && formatPercentileDisplay(profile.analytics.sessions_percentile)}
                 </div>
               </div>
             </div>
@@ -177,14 +223,21 @@ const Profile: React.FC = () => {
 
         {/* Chart */}
         <div className="bg-white border border-border-subtle p-6 shadow-sharp h-[300px]">
-          <h3 className="text-[10px] font-bold uppercase tracking-widest text-text-secondary mb-6">Weekly Activity</h3>
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-text-secondary mb-6">
+            {profile?.analytics.range === 'LAST_7_DAYS' ? 'Weekly Activity' :
+              profile?.analytics.range === 'LAST_30_DAYS' ? 'Monthly Activity' : 'Activity History'}
+          </h3>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
+            <BarChart
+              data={profile?.analytics.daily_breakdown || []}
+              margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
+            >
               <XAxis
-                dataKey="name"
+                dataKey="day_of_week"
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: '#828282', fontSize: 10, fontWeight: 'bold' }}
+                interval={profile?.analytics.range === 'LAST_30_DAYS' ? 3 : 0}
               />
               <YAxis
                 axisLine={false}
@@ -194,10 +247,15 @@ const Profile: React.FC = () => {
               <Tooltip
                 cursor={{ fill: '#f6f6ef' }}
                 contentStyle={{ borderRadius: 0, border: '1px solid #dddddd', fontSize: 12, fontWeight: 'bold' }}
+                formatter={(value: number) => [`${value.toFixed(1)}h`, 'Focus Time']}
+                labelStyle={{ color: '#ff6600', marginBottom: '0.25rem' }}
               />
               <Bar dataKey="hours">
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.name === 'Thu' ? '#ff6600' : '#e5e5e5'} />
+                {(profile?.analytics.daily_breakdown || []).map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.day_of_week === currentDayOfWeek ? '#ff6600' : '#e5e5e5'}
+                  />
                 ))}
               </Bar>
             </BarChart>
@@ -292,3 +350,4 @@ const Profile: React.FC = () => {
 };
 
 export default Profile;
+

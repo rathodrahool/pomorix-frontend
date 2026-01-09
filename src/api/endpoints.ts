@@ -15,7 +15,7 @@ export const API_ENDPOINTS = {
 
     // User
     USER: {
-        PROFILE: '/user/profile',
+        PROFILE: '/users/profile',  // Updated endpoint with analytics support
         UPDATE_PROFILE: '/user/profile',
         STATS: '/user/stats',
         ACHIEVEMENTS: '/user/achievements',

@@ -5,6 +5,9 @@ import type {
     UserStatsResponse,
     AchievementResponse,
     ApiResponse,
+    ProfileData,
+    ProfileAnalyticsRange,
+    ProfileResponse,
 } from '../types';
 
 /**
@@ -13,11 +16,23 @@ import type {
  */
 export const userService = {
     /**
-     * Get user profile
+     * Get user profile (legacy - kept for backward compatibility)
      */
     async getProfile(): Promise<UserData> {
         const response = await apiClient.get<ApiResponse<UserData>>(
             API_ENDPOINTS.USER.PROFILE
+        );
+        return response.data.data;
+    },
+
+    /**
+     * Get comprehensive user profile with analytics
+     * @param range - Time range for analytics (LAST_7_DAYS, LAST_30_DAYS, ALL_TIME)
+     */
+    async getProfileWithAnalytics(range: ProfileAnalyticsRange = 'LAST_7_DAYS'): Promise<ProfileData> {
+        const response = await apiClient.get<ProfileResponse>(
+            API_ENDPOINTS.USER.PROFILE,
+            { params: { range } }
         );
         return response.data.data;
     },
@@ -53,3 +68,4 @@ export const userService = {
         return response.data.data;
     },
 };
+

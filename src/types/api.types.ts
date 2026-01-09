@@ -278,3 +278,61 @@ export interface CurrentSessionResponse {
     message: string;
     data: ActiveSessionData | NoSessionData;
 }
+
+// ==================== Profile API Types ====================
+
+export type ProfileAnalyticsRange = 'LAST_7_DAYS' | 'LAST_30_DAYS' | 'ALL_TIME';
+
+export interface ProfileUser {
+    id: string;
+    email: string;
+    username: string;
+    member_since: string; // ISO 8601 format
+}
+
+export interface LifetimeStats {
+    total_sessions: number;
+    total_hours: number;
+    total_minutes: number;
+    total_pomodoros: number;
+}
+
+export interface ProfileStreak {
+    current_streak: number;
+    longest_streak: number;
+    last_active_date: string | null; // YYYY-MM-DD
+}
+
+
+export interface DailyBreakdownDto {
+    date: string;              // YYYY-MM-DD
+    day_of_week: string;       // Mon, Tue, Wed, etc.
+    hours: number;             // Hours for that day
+    sessions: number;          // Sessions count for that day
+}
+
+export interface ProfileAnalytics {
+    range: ProfileAnalyticsRange;
+    focus_time_hours: number;
+    focus_time_change_percent: number;
+    daily_avg_hours: number;
+    daily_goal_hours: number;
+    total_sessions: number;
+    sessions_percentile: number;
+    daily_breakdown: DailyBreakdownDto[];
+}
+
+
+export interface ProfileData {
+    user: ProfileUser;
+    lifetime_stats: LifetimeStats;
+    streak: ProfileStreak;
+    analytics: ProfileAnalytics;
+}
+
+export interface ProfileResponse {
+    status: 'success';
+    statusCode: number;
+    message: string;
+    data: ProfileData;
+}
