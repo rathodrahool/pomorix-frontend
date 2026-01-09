@@ -243,16 +243,6 @@ const LiveFeed: React.FC = () => {
           })
         )}
       </div>
-
-      {/* Footer - Global Goal */}
-      <div className="p-5 border-t border-border-subtle bg-[#fcfcfb]">
-        <div className="flex justify-between items-center text-[10px] font-bold text-text-secondary uppercase tracking-wider mb-2">
-          <span>🌍 {formatNumber(onlineCount)} people focusing worldwide</span>
-        </div>
-        <div className="text-center text-[10px] text-text-secondary mt-2">
-          Updates every 25 seconds
-        </div>
-      </div>
     </div>
   );
 };
