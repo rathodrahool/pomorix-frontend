@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -8,6 +7,7 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
+import ServerError from './pages/ServerError';
 import Layout from './components/Layout';
 import { ErrorBoundary } from './components/Common';
 import { authService } from './services';
@@ -100,6 +100,9 @@ const App: React.FC = () => {
               <Route path="profile" element={<Profile />} />
               <Route path="settings" element={<Settings />} />
             </Route>
+
+            {/* Test route for Server Error page (for development/testing) */}
+            <Route path="/error-test" element={<ServerError />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
