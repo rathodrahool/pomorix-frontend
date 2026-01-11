@@ -117,8 +117,8 @@ const Layout: React.FC = () => {
     // Initial fetch
     fetchOnlineCount();
 
-    // Poll every 15 seconds
-    const interval = setInterval(fetchOnlineCount, 15000);
+    // Poll every 5 minutes
+    const interval = setInterval(fetchOnlineCount, 300000);
 
     return () => clearInterval(interval);
   }, []);

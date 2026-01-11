@@ -12,8 +12,8 @@ import {
 } from '../../utils/feedUtils';
 
 // Polling intervals (in milliseconds)
-const FEED_POLL_INTERVAL = 25000; // 25 seconds
-const COUNT_POLL_INTERVAL = 15000; // 15 seconds
+const FEED_POLL_INTERVAL = 300000; // 5 minutes
+const COUNT_POLL_INTERVAL = 300000; // 5 minutes
 
 const LiveFeed: React.FC = () => {
   const [feed, setFeed] = useState<GlobalFeedItem[]>([]);
@@ -59,10 +59,10 @@ const LiveFeed: React.FC = () => {
     // Initial fetch
     fetchFeed();
 
-    // Poll feed every 25 seconds
+    // Poll feed every 5 minutes
     const feedInterval = setInterval(fetchFeed, FEED_POLL_INTERVAL);
 
-    // Poll count every 15 seconds (lightweight)
+    // Poll count every 5 minutes
     const countInterval = setInterval(fetchOnlineCount, COUNT_POLL_INTERVAL);
 
     // Cleanup on unmount
