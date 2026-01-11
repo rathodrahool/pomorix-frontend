@@ -60,6 +60,30 @@ const StatsSidebar: React.FC = () => {
     };
   }, [badges, totalStats]);
 
+  // Calculate days remaining in current season (2 months from now)
+  const daysUntilSeasonEnd = useMemo(() => {
+    const today = new Date();
+
+    // Calculate season end: current month + 2 months, last day of that month
+    const seasonEndDate = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+    // Note: Setting day to 0 gives us the last day of the previous month
+    // So month + 2, day 0 = last day of (month + 1), which is wrong
+    // We need: month + 2, then get last day of that month
+    const endMonth = today.getMonth() + 2;
+    const endYear = today.getFullYear() + Math.floor(endMonth / 12);
+    const adjustedEndMonth = endMonth % 12;
+
+    // Get last day of the end month: set day to 0 of next month
+    const seasonEnd = new Date(endYear, adjustedEndMonth + 1, 0);
+    seasonEnd.setHours(23, 59, 59, 999); // End of day
+
+    // Calculate difference in days
+    const diffTime = seasonEnd.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return diffDays > 0 ? diffDays : 0;
+  }, []); // Empty deps - recalculates on every render (updates daily)
+
   const loading = streakLoading || badgesLoading || statsLoading;
 
   return (
@@ -173,7 +197,7 @@ const StatsSidebar: React.FC = () => {
 
       <div className="mt-auto p-4 border-t border-border-subtle bg-[#fafafa]">
         <p className="text-[10px] text-text-secondary text-center font-mono uppercase">
-          Season Ends: 12 Days
+          Season Ends: {daysUntilSeasonEnd} {daysUntilSeasonEnd === 1 ? 'Day' : 'Days'}
         </p>
       </div>
     </div>
