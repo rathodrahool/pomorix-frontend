@@ -1,18 +1,21 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 
-interface Props {
-    children: ReactNode;
+interface ErrorBoundaryProps {
+    children: React.ReactNode;
 }
 
-interface State {
+interface ErrorBoundaryState {
     hasError: boolean;
     error: Error | null;
-    errorInfo: ErrorInfo | null;
+    errorInfo: React.ErrorInfo | null;
 }
 
-class ErrorBoundary extends Component<Props, State> {
-    constructor(props: Props) {
+export default class ErrorBoundary extends React.Component<
+    ErrorBoundaryProps,
+    ErrorBoundaryState
+> {
+    constructor(props: ErrorBoundaryProps) {
         super(props);
         this.state = {
             hasError: false,
@@ -21,15 +24,12 @@ class ErrorBoundary extends Component<Props, State> {
         };
     }
 
-    static getDerivedStateFromError(error: Error): Partial<State> {
-        // Update state so the next render will show the fallback UI
+    static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
         return { hasError: true, error };
     }
 
-    componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-        // Log error to console (you could also send to error tracking service)
+    componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
         console.error('ErrorBoundary caught an error:', error, errorInfo);
-
         this.setState({
             error,
             errorInfo,
@@ -44,8 +44,10 @@ class ErrorBoundary extends Component<Props, State> {
         });
     };
 
-    render(): ReactNode {
+    render(): React.ReactNode {
         if (this.state.hasError) {
+            const isDevelopment = import.meta.env.DEV;
+
             return (
                 <div className="min-h-screen bg-white flex flex-col">
                     {/* Main Content */}
@@ -71,7 +73,7 @@ class ErrorBoundary extends Component<Props, State> {
                                     </p>
 
                                     {/* Error Details (Development Only) */}
-                                    {process.env.NODE_ENV === 'development' && this.state.error && (
+                                    {isDevelopment && this.state.error && (
                                         <div className="w-full mt-4 p-4 bg-red-50 border border-red-200 text-left">
                                             <p className="text-xs font-mono text-red-800 font-bold mb-2">
                                                 Error Details (Dev Mode):
@@ -144,5 +146,3 @@ class ErrorBoundary extends Component<Props, State> {
         return this.props.children;
     }
 }
-
-export default ErrorBoundary;
