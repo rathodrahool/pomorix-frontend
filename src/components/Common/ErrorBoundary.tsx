@@ -114,31 +114,22 @@ export default class ErrorBoundary extends React.Component<
                                     </Link>
                                 </div>
 
-                                {/* Additional Help */}
-                                <div className="flex flex-wrap items-center justify-center gap-6 mt-6 pt-6 border-t border-border-subtle">
-                                    <a
-                                        href="#"
-                                        className="text-text-secondary hover:text-primary transition-colors text-sm font-medium"
-                                    >
-                                        Report Issue
-                                    </a>
-                                    <a
-                                        href="#"
-                                        className="text-text-secondary hover:text-primary transition-colors text-sm font-medium"
-                                    >
-                                        Support
-                                    </a>
-                                </div>
+                                {/* Report Bug Button */}
+                                <button
+                                    onClick={() => {
+                                        // You can replace this with your actual bug report functionality
+                                        window.open('https://github.com/your-repo/issues/new', '_blank');
+                                    }}
+                                    className="flex items-center justify-center gap-2 px-6 py-3 mt-4 border border-border-subtle hover:border-primary bg-white hover:bg-bg-page transition-all text-text-secondary hover:text-primary text-sm font-medium"
+                                >
+                                    <span className="material-symbols-outlined !text-[18px]">bug_report</span>
+                                    <span>Report a Bug</span>
+                                </button>
                             </div>
                         </div>
                     </main>
 
-                    {/* Footer */}
-                    <footer className="w-full border-t border-border-subtle bg-bg-page py-6 px-6 text-center">
-                        <p className="text-text-secondary text-sm font-normal">
-                            © 2024 Pomorix Inc. All rights reserved.
-                        </p>
-                    </footer>
+
                 </div>
             );
         }
