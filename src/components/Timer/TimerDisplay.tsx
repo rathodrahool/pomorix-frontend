@@ -3,8 +3,8 @@ import toast from 'react-hot-toast';
 import { TimerMode } from '../../types';
 import { pomodoroService, settingsService } from '../../services';
 import type { PomodoroSessionResponse, ActiveSessionData, UserSettings, SessionType, TaskResponse } from '../../types';
-import { useSound, useLoopingSound, useTabTitle, useTotalStats } from '../../hooks';
-import { getAlarmSoundPath, getTickingSoundPath } from '../../utils';
+import { useSound, useLoopingSound, useTabTitle, useTotalStats, useNetworkStatus } from '../../hooks';
+import { getAlarmSoundPath, getTickingSoundPath, settingsCache } from '../../utils';
 
 interface TimerDisplayProps {
   initialTask: string;
@@ -31,6 +31,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
   const [taskInput, setTaskInput] = useState(initialTask);
   const [currentSession, setCurrentSession] = useState<ActiveSessionData | null>(null);
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
+  const [isLoading, setIsLoading] = useState(false); // Prevent button spam
   const completingRef = useRef(false); // Prevent duplicate completion calls
 
   // Fetch total stats including today's pomodoros
@@ -60,11 +61,23 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
     enabled: true
   });
 
+  // Monitor network status
+  const { isOnline } = useNetworkStatus();
+
+
   // Fetch user settings and current session
   const fetchData = useCallback(async () => {
     try {
-      // Fetch settings
-      const settings = await settingsService.getUserSettings();
+      // Try to get settings from cache first
+      let settings = settingsCache.get();
+
+      if (!settings) {
+        // Cache miss or expired - fetch from server
+        settings = await settingsService.getUserSettings();
+        // Store in cache for next time
+        settingsCache.set(settings);
+      }
+
       setUserSettings(settings);
 
       // Only update timer duration if no active session
@@ -91,11 +104,34 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
 
   // Re-fetch settings when window regains focus (e.g., returning from settings page)
   useEffect(() => {
+    let lastFetchTime = 0;
+    const THROTTLE_MS = 30000; // 30 seconds
+
     const handleFocus = () => {
-      // Only re-fetch settings, not the entire session
+      const now = Date.now();
+
+      // Throttle: only refetch if 30 seconds have passed since last fetch
+      if (now - lastFetchTime < THROTTLE_MS) {
+        return;
+      }
+
+      lastFetchTime = now;
+      // Only re-fetch settings if cache is invalid
       const refetchSettings = async () => {
         try {
+          // Check if cache is still valid
+          if (settingsCache.isValid()) {
+            // Cache is valid, use cached settings
+            const cached = settingsCache.get();
+            if (cached) {
+              setUserSettings(cached);
+              return;
+            }
+          }
+
+          // Cache is invalid or missing - fetch from server
           const settings = await settingsService.getUserSettings();
+          settingsCache.set(settings);
           setUserSettings(settings);
         } catch (err) {
           // Silent fail
@@ -141,7 +177,37 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
   }, [userSettings]);
 
   const changeMode = async (newMode: TimerMode) => {
-    if (!hasActiveTask) return;
+    if (!hasActiveTask || isLoading) return;
+
+    // Prevent accidental mode switch if session is active with progress
+    if (currentSession && isActive) {
+      const elapsedSeconds = currentSession.duration_seconds - secondsLeft;
+      const SIGNIFICANT_PROGRESS_THRESHOLD = 60; // 1 minute
+
+      if (elapsedSeconds > SIGNIFICANT_PROGRESS_THRESHOLD) {
+        const currentModeLabel = {
+          focus: 'Focus',
+          shortBreak: 'Short Break',
+          longBreak: 'Long Break',
+        }[mode];
+
+        const newModeLabel = {
+          focus: 'Focus',
+          shortBreak: 'Short Break',
+          longBreak: 'Long Break',
+        }[newMode];
+
+        const confirmed = window.confirm(
+          `You have an active ${currentModeLabel} session in progress.\n\n` +
+          `Switching to ${newModeLabel} will end your current session and you'll lose this progress.\n\n` +
+          `Are you sure you want to continue?`
+        );
+
+        if (!confirmed) {
+          return; // User cancelled
+        }
+      }
+    }
 
     // Map UI mode to SessionType
     const sessionTypeMap: Record<TimerMode, SessionType> = {
@@ -151,6 +217,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
     };
 
     try {
+      setIsLoading(true);
       // Start new session with selected type
       const session = await pomodoroService.startSession(sessionTypeMap[newMode]);
 
@@ -170,6 +237,8 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || 'Failed to start session';
       toast.error(errorMsg);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -326,67 +395,110 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
   };
 
   const handleStartPause = async () => {
-    if (!hasActiveTask) return;
+    if (!hasActiveTask || isLoading) return;
 
-    if (!isActive && !currentSession) {
-      // Starting fresh - call start API
-      startPomodoroSession();
-    } else if (isActive && currentSession) {
-      // Currently running - pause it
-      try {
-        await pomodoroService.pauseSession();
-        setIsActive(false);
-        toast.success('Session paused');
-      } catch (err: any) {
-        const errorMsg = err.response?.data?.message || 'Failed to pause session';
-        toast.error(errorMsg);
-      }
-    } else if (!isActive && currentSession) {
-      // Check if session is actually paused (not just created and ready)
-      if (currentSession.is_paused) {
-        // Session was running and then paused - resume it
+    try {
+      setIsLoading(true);
+
+      if (!isActive && !currentSession) {
+        // Starting fresh - call start API
+        await startPomodoroSession();
+      } else if (isActive && currentSession) {
+        // Currently running - pause it
+        // OPTIMISTIC UPDATE: Update UI immediately for instant feedback
+        const previousState = isActive;
+        const previousSession = currentSession;
+        setIsActive(false); // UI updates instantly
+
         try {
-          await pomodoroService.resumeSession();
-
-          // Fetch fresh session data to get accurate remaining_seconds
-          const session = await pomodoroService.getCurrentSession();
-          if (session) {
-            setCurrentSession(session);
-            setSecondsLeft(session.remaining_seconds);
-            setIsActive(true);
-            toast.success('Session resumed');
-          }
-        } catch (err: any) {
-          const errorMsg = err.response?.data?.message || 'Failed to resume session';
-          toast.error(errorMsg);
+          await pomodoroService.pauseSession();
+          // Update session state to reflect it's paused
+          setCurrentSession({
+            ...currentSession,
+            is_paused: true,
+            paused_at: new Date().toISOString(),
+          });
+          // Only show success toast AFTER API confirms
+          toast.success('Session paused');
+        } catch (err) {
+          // Rollback on failure
+          setIsActive(previousState);
+          setCurrentSession(previousSession);
+          throw err;
         }
-      } else {
-        // Session exists but was never started (created by mode change) - just start it
-        setIsActive(true);
-        toast.success('Session started!');
+      } else if (!isActive && currentSession) {
+        // Check if session is actually paused (not just created and ready)
+        if (currentSession.is_paused) {
+          // Session was running and then paused - resume it
+          // OPTIMISTIC UPDATE: Update UI immediately for instant feedback
+          const previousIsActive = isActive;
+          setIsActive(true); // UI updates instantly
+
+          try {
+            // TODO OPTIMIZATION: Backend could return session data from /resume endpoint
+            // to eliminate this second API call (/current). Currently requires 2 calls.
+            await pomodoroService.resumeSession();
+
+            // Fetch fresh session data to get accurate remaining_seconds
+            const session = await pomodoroService.getCurrentSession();
+            if (session) {
+              setCurrentSession(session);
+              setSecondsLeft(session.remaining_seconds);
+            }
+            // Only show success toast AFTER API confirms
+            toast.success('Session resumed');
+          } catch (err) {
+            // Rollback on failure
+            setIsActive(previousIsActive);
+            throw err;
+          }
+        } else {
+          // Session exists but was never started (created by mode change) - just start it
+          setIsActive(true);
+          toast.success('Session started!');
+        }
       }
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || 'Failed to perform action';
+      toast.error(errorMsg);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <section className="flex flex-col items-center bg-white p-8 border border-border-subtle shadow-sharp w-full">
+      {/* Offline Indicator */}
+      {!isOnline && (
+        <div className="w-full mb-6 px-4 py-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 flex items-center gap-3">
+          <span className="material-symbols-outlined !text-xl">wifi_off</span>
+          <div className="flex-1">
+            <p className="font-bold text-sm">You're offline</p>
+            <p className="text-xs">Timer will continue locally and sync when connection is restored</p>
+          </div>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex border border-border-subtle bg-bg-page mb-10 overflow-hidden">
         <button
           onClick={() => changeMode('focus')}
-          className={`px-6 py-2 text-sm font-bold border-r border-border-subtle transition-colors ${mode === 'focus' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-white'}`}
+          disabled={isLoading}
+          className={`px-6 py-2 text-sm font-bold border-r border-border-subtle transition-colors ${mode === 'focus' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-white'} disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           Focus
         </button>
         <button
           onClick={() => changeMode('shortBreak')}
-          className={`px-6 py-2 text-sm font-bold border-r border-border-subtle transition-colors ${mode === 'shortBreak' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-white'}`}
+          disabled={isLoading}
+          className={`px-6 py-2 text-sm font-bold border-r border-border-subtle transition-colors ${mode === 'shortBreak' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-white'} disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           Short Break
         </button>
         <button
           onClick={() => changeMode('longBreak')}
-          className={`px-6 py-2 text-sm font-bold transition-colors ${mode === 'longBreak' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-white'}`}
+          disabled={isLoading}
+          className={`px-6 py-2 text-sm font-bold transition-colors ${mode === 'longBreak' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-white'} disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           Long Break
         </button>
@@ -435,12 +547,21 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ initialTask, onTaskChange, 
       <div className="flex justify-center w-full">
         <button
           onClick={handleStartPause}
-          disabled={!hasActiveTask}
+          disabled={!hasActiveTask || isLoading}
           className={`group flex min-w-[220px] items-center justify-center h-16 px-10 ${isActive ? 'bg-white text-primary border-primary' : 'bg-primary text-white border-primary-dark'} hover:opacity-90 transition-all gap-3 text-lg font-bold border-2 shadow-sharp active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed`}
-          title={!hasAnyTasks ? 'Create a task first' : !hasActiveTask ? 'Select a task to start' : ''}
+          title={!hasAnyTasks ? 'Create a task first' : !hasActiveTask ? 'Select a task to start' : isLoading ? 'Processing...' : ''}
         >
-          <span className="material-symbols-outlined !text-[28px]">{isActive ? 'pause' : 'play_arrow'}</span>
-          <span>{isActive ? 'Pause Focus' : 'Start Focus'}</span>
+          {isLoading ? (
+            <>
+              <span className="material-symbols-outlined !text-[28px] animate-spin">progress_activity</span>
+              <span>Processing...</span>
+            </>
+          ) : (
+            <>
+              <span className="material-symbols-outlined !text-[28px]">{isActive ? 'pause' : 'play_arrow'}</span>
+              <span>{isActive ? 'Pause Focus' : 'Start Focus'}</span>
+            </>
+          )}
         </button>
       </div>
 
