@@ -8,6 +8,7 @@ import type {
     SessionType,
 } from '../types';
 import { settingsService } from './settings.service';
+import { retryWithBackoff } from '../utils';
 
 /**
  * Pomodoro Session Service
@@ -55,25 +56,54 @@ export const pomodoroService = {
     /**
      * Pause the current active session
      * Server tracks pause time automatically
+     * Includes retry logic for network resilience
      */
     async pauseSession(): Promise<void> {
-        await apiClient.post(API_ENDPOINTS.POMODORO.PAUSE);
+        await retryWithBackoff(
+            () => apiClient.post(API_ENDPOINTS.POMODORO.PAUSE),
+            {
+                maxAttempts: 3,
+                onRetry: (attempt) => {
+                    console.log(`Retrying pause session (attempt ${attempt})...`);
+                }
+            }
+        );
     },
 
     /**
      * Resume the paused session
      * After resuming, fetch current session to get updated remaining_seconds
+     * Includes retry logic for network resilience
      */
     async resumeSession(): Promise<void> {
-        await apiClient.post(API_ENDPOINTS.POMODORO.RESUME);
+        await retryWithBackoff(
+            () => apiClient.post(API_ENDPOINTS.POMODORO.RESUME),
+            {
+                maxAttempts: 3,
+                onRetry: (attempt) => {
+                    console.log(`Retrying resume session (attempt ${attempt})...`);
+                }
+            }
+        );
     },
 
     /**
      * Complete the current focus session
      * Called when timer countdown reaches zero
      * Only works for FOCUS state sessions
+     * Includes retry logic with extended attempts for critical operation
      */
     async completeSession(): Promise<void> {
-        await apiClient.post(API_ENDPOINTS.POMODORO.COMPLETE);
+        await retryWithBackoff(
+            () => apiClient.post(API_ENDPOINTS.POMODORO.COMPLETE),
+            {
+                maxAttempts: 5, // More attempts for critical completion operation
+                initialDelayMs: 1000,
+                maxDelayMs: 10000,
+                onRetry: (attempt, error) => {
+                    console.warn(`Retrying complete session (attempt ${attempt})...`, error);
+                }
+            }
+        );
     },
 };

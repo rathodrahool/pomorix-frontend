@@ -4,7 +4,7 @@ import { TimerMode } from '../../types';
 import { pomodoroService, settingsService } from '../../services';
 import type { PomodoroSessionResponse, ActiveSessionData, UserSettings, SessionType, TaskResponse } from '../../types';
 import { useSound, useLoopingSound, useTabTitle, useTotalStats, useNetworkStatus } from '../../hooks';
-import { getAlarmSoundPath, getTickingSoundPath, settingsCache } from '../../utils';
+import { getAlarmSoundPath, getTickingSoundPath, settingsCache, retryWithBackoff } from '../../utils';
 
 interface TimerDisplayProps {
   initialTask: string;
