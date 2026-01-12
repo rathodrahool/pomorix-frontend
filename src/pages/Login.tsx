@@ -1,4 +1,5 @@
 import React from 'react';
+import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../hooks';
 import { AuthProvider } from '../types';
 
@@ -9,34 +10,44 @@ interface LoginProps {
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const { socialLogin, loading, error } = useAuth();
 
-  // Static test credentials for Google
-  const handleGoogleLogin = async () => {
-    const staticGoogleData = {
-      email: "rahul@pomorix.com",
-      auth_provider: AuthProvider.GOOGLE,
-      auth_provider_id: "google-12345674589"
-    };
+  // Google OAuth Login
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        // Get user info from Google
+        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.access_token}`,
+          },
+        });
 
-    const success = await socialLogin(staticGoogleData);
+        const userInfo = await userInfoResponse.json();
 
-    if (success) {
-      onLogin();
-    }
-  };
+        // Send to backend with proper format
+        const googleData = {
+          email: userInfo.email,
+          auth_provider: AuthProvider.GOOGLE,
+          auth_provider_id: userInfo.sub, // Google's user ID
+        };
 
-  // Static test credentials for Apple
+        const success = await socialLogin(googleData);
+
+        if (success) {
+          onLogin();
+        }
+      } catch (err) {
+        console.error('Google login error:', err);
+      }
+    },
+    onError: () => {
+      console.error('Google Login Failed');
+    },
+  });
+
+  // Apple login - keeping as mock for now (Apple OAuth requires more setup)
   const handleAppleLogin = async () => {
-    const staticAppleData = {
-      email: "rahul@pomorix.com",
-      auth_provider: AuthProvider.APPLE,
-      auth_provider_id: "apple-12345674589"
-    };
-
-    const success = await socialLogin(staticAppleData);
-
-    if (success) {
-      onLogin();
-    }
+    // TODO: Implement Apple OAuth when ready
+    console.log('Apple login not yet implemented');
   };
 
   return (
@@ -60,7 +71,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           )}
 
           <button
-            onClick={handleGoogleLogin}
+            onClick={() => handleGoogleLogin()}
             className="flex items-center justify-center gap-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 py-4 transition-all duration-200 text-base font-bold shadow-sharp group w-full active:translate-y-[1px]"
             type="button"
             disabled={loading}
