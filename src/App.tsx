@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -7,7 +6,10 @@ import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
+import NotFound from './pages/NotFound';
+import ServerError from './pages/ServerError';
 import Layout from './components/Layout';
+import { ErrorBoundary } from './components/Common';
 import { authService } from './services';
 
 // Create a client for React Query
@@ -35,73 +37,78 @@ const App: React.FC = () => {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#fff',
-            color: '#1a1a1a',
-            border: '1px solid #e5e7eb',
-            borderRadius: '4px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-            padding: '16px',
-            fontWeight: '500',
-            fontSize: '14px',
-            maxWidth: '400px',
-          },
-          success: {
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <Toaster
+          position="top-right"
+          toastOptions={{
             duration: 3000,
             style: {
               background: '#fff',
               color: '#1a1a1a',
               border: '1px solid #e5e7eb',
-              borderLeft: '4px solid #10b981',
               borderRadius: '4px',
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              padding: '16px',
+              fontWeight: '500',
+              fontSize: '14px',
+              maxWidth: '400px',
             },
-            iconTheme: {
-              primary: '#10b981',
-              secondary: '#fff',
+            success: {
+              duration: 3000,
+              style: {
+                background: '#fff',
+                color: '#1a1a1a',
+                border: '1px solid #e5e7eb',
+                borderLeft: '4px solid #10b981',
+                borderRadius: '4px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              },
+              iconTheme: {
+                primary: '#10b981',
+                secondary: '#fff',
+              },
             },
-          },
-          error: {
-            duration: 4000,
-            style: {
-              background: '#fff',
-              color: '#1a1a1a',
-              border: '1px solid #e5e7eb',
-              borderLeft: '4px solid #ef4444',
-              borderRadius: '4px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            error: {
+              duration: 4000,
+              style: {
+                background: '#fff',
+                color: '#1a1a1a',
+                border: '1px solid #e5e7eb',
+                borderLeft: '4px solid #ef4444',
+                borderRadius: '4px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              },
+              iconTheme: {
+                primary: '#ef4444',
+                secondary: '#fff',
+              },
             },
-            iconTheme: {
-              primary: '#ef4444',
-              secondary: '#fff',
-            },
-          },
-        }}
-      />
-      <HashRouter>
-        <Routes>
-          <Route path="/login" element={
-            isAuthenticated ? <Navigate to="/" /> : <Login onLogin={handleLogin} />
-          } />
+          }}
+        />
+        <HashRouter>
+          <Routes>
+            <Route path="/login" element={
+              isAuthenticated ? <Navigate to="/" /> : <Login onLogin={handleLogin} />
+            } />
 
-          <Route
-            path="/"
-            element={isAuthenticated ? <Layout /> : <Navigate to="/login" />}
-          >
-            <Route index element={<Home />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
+            <Route
+              path="/"
+              element={isAuthenticated ? <Layout /> : <Navigate to="/login" />}
+            >
+              <Route index element={<Home />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
 
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </HashRouter>
-    </QueryClientProvider>
+            {/* Test route for Server Error page (for development/testing) */}
+            <Route path="/error-test" element={<ServerError />} />
+
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </HashRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

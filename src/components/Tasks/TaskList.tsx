@@ -69,9 +69,41 @@ const TaskList: React.FC<TaskListProps> = ({ sharedTasks, sharedLoading, onRefre
     if (!taskToDelete) return;
 
     try {
+      // Check if we're deleting the active task
+      const taskBeingDeleted = tasks.find(t => t.id === taskToDelete.id);
+      const wasActive = taskBeingDeleted?.is_active;
+
+      // Delete the task
       const response = await apiClient.delete(API_ENDPOINTS.TASKS.DELETE(taskToDelete.id));
+
+      // If deleted task was active, find next incomplete task to activate
+      if (wasActive) {
+        // Find next incomplete task (excluding the one we just deleted)
+        const nextTask = tasks.find(t =>
+          t.id !== taskToDelete.id &&
+          !t.is_completed
+        );
+
+        // Auto-activate the next task
+        if (nextTask) {
+          try {
+            await apiClient.patch(API_ENDPOINTS.TASKS.TOGGLE_ACTIVE(nextTask.id));
+            toast.success(`Task deleted. "${nextTask.title}" is now active.`);
+          } catch (activateErr) {
+            console.error('Failed to auto-activate next task:', activateErr);
+            // Still show success for deletion even if activation fails
+            toast.success(response.data.message);
+          }
+        } else {
+          // No more incomplete tasks
+          toast.success(response.data.message + ' No more tasks to activate.');
+        }
+      } else {
+        // Not an active task, just show normal success
+        toast.success(response.data.message);
+      }
+
       await fetchTasks();
-      toast.success(response.data.message);
       setDeleteModalOpen(false);
       setTaskToDelete(null);
     } catch (err: any) {

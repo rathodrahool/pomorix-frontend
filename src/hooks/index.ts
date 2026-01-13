@@ -6,4 +6,5 @@ export { useBadgeDefinitions, useMyBadges } from './useBadges';
 export { useSound, useLoopingSound } from './useSound';
 export { useTabTitle } from './useTabTitle';
 export { useProfile } from './useProfile';
+export { useNetworkStatus } from './useNetworkStatus';
 

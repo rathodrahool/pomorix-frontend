@@ -40,7 +40,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                 className="bg-white border border-gray-300 shadow-lg max-w-md w-full mx-4 overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Red top border */}
+                {/* Red top border    */}
                 <div className="h-1 bg-red-500"></div>
 
                 {/* Content */}
