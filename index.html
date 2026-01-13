@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pomorix - Global Study Hall</title>
+    <title>Pomorix</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Noto+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -15,9 +15,10 @@
             theme: {
                 extend: {
                     colors: {
-                        "primary": "#ff6600",
+                        "primary": "#F26522",
                         "primary-dark": "#cc5200",
                         "bg-page": "#f6f6ef",
+                        "yc-bg": "#f6f6ef",
                         "surface": "#ffffff",
                         "text-main": "#111111",
                         "text-secondary": "#828282",
@@ -29,8 +30,9 @@
                         "mono": ["JetBrains Mono", "monospace"],
                     },
                     boxShadow: {
-                        'sharp': '3px 3px 0px 0px rgba(0,0,0,0.1)',
+                        'sharp': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                         'sharp-hover': '5px 5px 0px 0px rgba(0,0,0,0.15)',
+                        'sharp-lg': '0 4px 0 0 rgba(0,0,0,0.05)',
                     }
                 },
                 borderRadius: {
@@ -73,6 +75,6 @@
 </head>
 <body class="bg-bg-page font-body text-text-main antialiased min-h-screen">
     <div id="root"></div>
-<script type="module" src="/index.tsx"></script>
+<script type="module" src="/src/index.tsx"></script>
 </body>
 </html>

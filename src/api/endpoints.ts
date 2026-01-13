@@ -1,0 +1,84 @@
+/**
+ * API Endpoints Constants
+ * Centralized location for all API endpoint paths
+ */
+
+export const API_ENDPOINTS = {
+    // Authentication
+    AUTH: {
+        LOGIN: '/auth/signin',
+        REGISTER: '/auth/signup',
+        LOGOUT: '/auth/logout',
+        REFRESH: '/auth/refresh',
+        ME: '/auth/me',
+    },
+
+    // User
+    USER: {
+        PROFILE: '/users/profile',  // Updated endpoint with analytics support
+        UPDATE_PROFILE: '/user/profile',
+        STATS: '/user/stats',
+        ACHIEVEMENTS: '/user/achievements',
+    },
+
+    // Tasks
+    TASKS: {
+        LIST: '/tasks',
+        CREATE: '/tasks',
+        GET: (id: string) => `/tasks/${id}`,
+        UPDATE: (id: string) => `/tasks/${id}`,
+        DELETE: (id: string) => `/tasks/${id}`,
+        TOGGLE_COMPLETE: (id: string) => `/tasks/${id}/toggle`,
+        TOGGLE_ACTIVE: (id: string) => `/tasks/${id}/toggle-active`,
+    },
+
+    // Timer / Pomodoro
+    TIMER: {
+        START_SESSION: '/timer/start',
+        END_SESSION: '/timer/end',
+        SESSIONS: '/timer/sessions',
+        STATS: '/timer/stats',
+    },
+
+    // Live Hall
+    LIVE: {
+        USERS: '/live/users',
+        JOIN: '/live/join',
+        LEAVE: '/live/leave',
+        UPDATE_STATUS: '/live/status',
+    },
+
+    // Pomodoro Sessions
+    POMODORO: {
+        START: '/pomodoro-session/start',
+        CURRENT: '/pomodoro-session/current',
+        PAUSE: '/pomodoro-session/pause',
+        RESUME: '/pomodoro-session/resume',
+        COMPLETE: '/pomodoro-session/complete',
+    },
+
+    // Streak
+    STREAK: {
+        GET: '/streak',
+        TOTAL_STATS: '/streak/total-stats',
+    },
+
+    // User Settings
+    SETTINGS: {
+        GET: '/user-settings',
+        UPDATE: '/user-settings',
+        RESET: '/user-settings/reset',
+    },
+
+    // Badge System
+    BADGE: {
+        DEFINITIONS: '/badge/definitions',
+        MY_BADGES: '/badge/my-badges',
+    },
+
+    // Global Feed
+    GLOBAL: {
+        FEED: '/global/feed',
+        ONLINE_COUNT: '/global/online-count',
+    },
+} as const;
