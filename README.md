@@ -19,7 +19,7 @@ Think of Pomorix as a **silent digital library** where everyone is focused.
 ## 🚀 Features
 
 ### 🧑‍💻 Authentication
-- Email & password based signup/login
+- Authentication: Guest access, and Google social login (JWT-based)
 - Secure JWT-based authentication
 
 ---
