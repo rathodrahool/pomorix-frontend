@@ -1,291 +1,199 @@
-# Pomorix
-
-A modular Pomodoro timer application with social features, built with React, TypeScript, and Vite.
-
-## 📁 Project Structure
-
-```
-pomorix-frontend/
-├── src/
-│   ├── api/                    # HTTP client configuration
-│   │   ├── client.ts          # Axios instance with interceptors
-│   │   ├── endpoints.ts       # API endpoint constants
-│   │   └── index.ts
-│   │
-│   ├── services/              # Business logic & API calls
-│   │   ├── auth.service.ts    # Authentication
-│   │   ├── user.service.ts    # User operations
-│   │   ├── task.service.ts    # Task management
-│   │   ├── timer.service.ts   # Pomodoro sessions
-│   │   └── index.ts
-│   │
-│   ├── hooks/                 # Custom React hooks
-│   │   ├── useApi.ts          # Generic API hook
-│   │   ├── useAuth.ts         # Authentication state
-│   │   ├── useTasks.ts        # Task management
-│   │   └── index.ts
-│   │
-│   ├── types/                 # TypeScript definitions
-│   │   ├── api.types.ts       # API request/response types
-│   │   ├── models.types.ts    # Domain models
-│   │   └── index.ts
-│   │
-│   ├── utils/                 # Utility functions
-│   │   ├── storage.ts         # LocalStorage wrapper
-│   │   ├── formatters.ts      # Data formatters
-│   │   ├── validators.ts      # Input validation
-│   │   └── index.ts
-│   │
-│   ├── constants/             # App constants
-│   │   ├── config.ts          # Configuration
-│   │   ├── routes.ts          # Route paths
-│   │   └── index.ts
-│   │
-│   ├── components/            # React components
-│   ├── pages/                 # Page components
-│   ├── App.tsx               # Main app component
-│   └── index.tsx             # Entry point
-│
-├── .env.example              # Environment variables template
-├── .env.local                # Your local environment (gitignored)
-├── vite.config.ts            # Vite configuration
-└── package.json              # Dependencies
-```
-
-## 🚀 Getting Started
-
-### 1. Install Dependencies
-
-```bash
-npm install
-```
-
-### 2. Configure Environment
-
-Copy the example environment file and update the values:
-
-```bash
-copy .env.example .env.local
-```
-
-Edit `.env.local` with your configuration:
+# Pomorix 🧠⏱️  
+A global Pomodoro-based study app focused on consistency, visibility, and motivation.
 
-```env
-VITE_API_BASE_URL=http://localhost:4000/api
-VITE_GEMINI_API_KEY=your_gemini_api_key_here
-```
+Pomorix helps users build a daily study habit using the **Pomodoro technique**, while feeling motivated by seeing others study at the same time — without chat, groups, or distractions.
 
-### 3. Run Development Server
+---
 
-```bash
-npm run dev
-```
+## ✨ Core Idea
 
-The app will be available at `http://localhost:3000`
+- One **global study space**
+- Everyone studies silently together
+- No rooms, no chat, no social noise
+- Motivation comes from **visibility, streaks, and progress**
 
-### 4. Build for Production
+Think of Pomorix as a **silent digital library** where everyone is focused.
 
-```bash
-npm run build
-```
+---
 
-## 📚 Architecture Guide
+## 🚀 Features
 
-### API Layer (`src/api/`)
+### 🧑‍💻 Authentication
+- Email & password based signup/login
+- Secure JWT-based authentication
 
-The API layer handles HTTP communication:
+---
 
-- **`client.ts`**: Axios instance with request/response interceptors
-  - Automatically attaches JWT tokens to requests
-  - Handles 401 errors (redirect to login)
-  - Centralized error handling
+### 📋 Tasks
+- Create simple study tasks
+- One active task at a time
+- Tasks are **context**, not a todo system
 
-- **`endpoints.ts`**: All API endpoint paths in one place
-  - Organized by feature
-  - Type-safe endpoint builders
+---
 
-### Services (`src/services/`)
+### ⏱️ Pomodoro Sessions
+- Server-authoritative Pomodoro timer
+- Focus & break cycles
+- Pause / resume support
+- One active session per user
+- Sessions are the **single source of truth**
 
-Services contain business logic and API calls. They're **framework-agnostic** and can be used anywhere:
+---
 
-```typescript
-import { authService } from '@/services';
+### 🌍 Global Study Feed (Polling-based)
+- See who is studying right now
+- Shows:
+  - User name
+  - Task being studied
+  - Focus / break / recently completed status
+- Implemented using **short polling**
+- No WebSockets in MVP (keeps infra simple)
 
-// Login user
-const response = await authService.login({ email, password });
+---
 
-// Get tasks
-const tasks = await taskService.getTasks();
-```
+### 🔥 Daily Streaks
+- Streak increases if user completes **at least one Pomodoro per day**
+- Timezone-aware
+- Tracks:
+  - Current streak
+  - Longest streak
+- Idempotent and retry-safe
 
-**Available Services:**
-- `authService` - Login, register, logout
-- `userService` - Profile, stats, achievements
-- `taskService` - CRUD operations for tasks
-- `timerService` - Pomodoro session management
+---
 
-### Custom Hooks (`src/hooks/`)
+### 📊 Stats & Analytics
+- Pre-aggregated (no raw session scans)
+- Daily, weekly, and lifetime stats
+- Includes:
+  - Total Pomodoros
+  - Total focus time
+  - Daily focus charts
+  - Task-wise focus stats
 
-React hooks for easy component integration:
+---
 
-```typescript
-import { useAuth, useTasks } from '@/hooks';
+### 🐞 Bug Reporting
+- Users can report bugs directly from the app
+- Simple lifecycle:
+  - Open → In Progress → Resolved → Closed
+- Users can track status of reported bugs
+- Admin-only management
 
-function MyComponent() {
-  const { user, login, logout } = useAuth();
-  const { tasks, createTask, updateTask } = useTasks();
-  
-  // Use them in your component
-}
-```
+---
 
-**Available Hooks:**
-- `useApi` - Generic hook for any API call with loading/error states
-- `useAuth` - Authentication state management
-- `useTasks` - Task list with CRUD operations
+## 🧠 Design Philosophy
 
-### Types (`src/types/`)
+- **Focus first**
+- No social pressure
+- No comparison stress
+- No gamification overload
+- Simple, honest metrics
 
-Comprehensive TypeScript types:
+Pomorix is designed to **build habits**, not dopamine loops.
 
-- **`api.types.ts`**: Request/response types for all endpoints
-- **`models.types.ts`**: Domain models (Task, User, etc.)
+---
 
-### Utils (`src/utils/`)
+## 🏗️ Architecture Overview
 
-Reusable utility functions:
+### Backend Modules
+1. Authentication & Users
+2. Tasks
+3. Pomodoro Sessions
+4. Global Feed (Polling-based)
+5. Streaks
+6. Stats & Analytics
+7. Bug Reports
 
-- **`storage`**: Type-safe localStorage operations
-- **`formatters`**: Date/time/number formatting
-- **`validators`**: Form validation functions
+> The system is event-driven at the core, making it easy to add real-time presence (WebSockets) later without schema changes.
 
-### Constants (`src/constants/`)
+---
 
-App-wide constants:
+## 🗄️ Database Design (Highlights)
 
-- **`config`**: Environment-based configuration
-- **`routes`**: Application route paths
+- **Pomodoro sessions** are the source of truth
+- **Streaks and stats are derived**
+- **No session-level queries for UI**
+- Soft deletes where history matters
+- Strong idempotency guarantees
 
-## 🔧 Usage Examples
+---
 
-### Making API Calls
+## 📡 Real-time Strategy
 
-```typescript
-// Using services directly
-import { taskService } from '@/services';
+### MVP
+- Short polling (every 20–30 seconds)
+- Derived from active Pomodoro sessions
+- No Redis
+- No WebSockets
 
-const newTask = await taskService.createTask({
-  title: 'Study React',
-  pomodoros: 4
-});
-```
+### Future
+- WebSocket-based real-time presence
+- Redis-backed ephemeral state
+- Zero schema changes required
 
-### Using Hooks in Components
+---
 
-```typescript
-import { useTasks } from '@/hooks';
+## 🛠️ Tech Stack (Current)
 
-function TaskList() {
-  const { tasks, loading, error, createTask } = useTasks();
+- **Backend:** Node.js, TypeScript, NestJS
+- **Database:** PostgreSQL
+- **ORM:** Prisma
+- **Auth:** JWT
+- **Infra:** Docker, AWS
+- **Testing:** Jest
 
-  const handleAdd = async () => {
-    await createTask({ title: 'New Task' });
-  };
+---
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+## 🧪 MVP Scope
 
-  return (
-    <div>
-      {tasks.map(task => (
-        <div key={task.id}>{task.title}</div>
-      ))}
-      <button onClick={handleAdd}>Add Task</button>
-    </div>
-  );
-}
-```
+✅ Personal Pomodoro tracking  
+✅ Global study feed (polling)  
+✅ Streaks & stats  
+✅ Bug reporting  
 
-### Authentication
+❌ Chat  
+❌ Groups  
+❌ Leaderboards  
+❌ Social interactions  
 
-```typescript
-import { useAuth } from '@/hooks';
+---
 
-function LoginPage() {
-  const { login, loading, error } = useAuth();
+## 📌 Why Pomorix?
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    const success = await login({
-      email: 'user@example.com',
-      password: 'password123'
-    });
-    
-    if (success) {
-      // Redirect to dashboard
-    }
-  };
+Most focus apps are:
+- Either isolated
+- Or socially noisy
 
-  return (
-    <form onSubmit={handleLogin}>
-      {/* form fields */}
-    </form>
-  );
-}
-```
+Pomorix finds the middle ground:
+> *“You are not studying alone — but you are not distracted either.”*
 
-## 🎯 Best Practices
+---
 
-### 1. **Separation of Concerns**
-- UI components should only handle presentation
-- Business logic lives in services
-- Hooks bridge services and components
+## 🧭 Roadmap (High Level)
 
-### 2. **Type Safety**
-- Use TypeScript types from `@/types`
-- Services return typed data
-- Hooks provide typed values
+- [ ] WebSocket-based real-time presence
+- [ ] Screenshot attachments for bug reports
+- [ ] User goals (daily focus target)
+- [ ] Mobile app
+- [ ] Public study heatmap
 
-### 3. **Error Handling**
-- API errors are caught in interceptors
-- Services throw errors for hooks to catch
-- Hooks provide error states for UI
-
-### 4. **State Management**
-- Authentication state via `useAuth`
-- Task state via `useTasks`
-- Generic API calls via `useApi`
-
-### 5. **Path Aliases**
-- Use `@/` instead of relative imports
-- Example: `import { authService } from '@/services'`
-
-## 🔐 Environment Variables
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `VITE_API_BASE_URL` | Backend API base URL | `http://localhost:4000/api` |
-| `VITE_GEMINI_API_KEY` | Gemini AI API key (optional) | `your_key_here` |
-
-**Note**: All Vite environment variables must be prefixed with `VITE_` to be exposed to the client.
-
-## 📦 Dependencies
-
-- **React 19** - UI framework
-- **TypeScript** - Type safety
-- **Vite** - Build tool
-- **Axios** - HTTP client
-- **React Router** - Routing
-- **Recharts** - Charts
+---
 
 ## 🤝 Contributing
 
-When adding new features:
+This project is currently under active development.  
+Contributions, feedback, and ideas are welcome.
 
-1. **API Endpoints**: Add to `src/api/endpoints.ts`
-2. **Types**: Add request/response types to `src/types/api.types.ts`
-3. **Services**: Create service methods in appropriate service file
-4. **Hooks**: Create custom hooks for component integration
-5. **Components**: Build UI using hooks
+---
 
-This keeps code modular and maintainable!
+## 📄 License
+
+MIT License
+
+---
+
+## 🔗 Links
+
+- Live App: https://www.pomorix.space
+- GitHub: https://github.com/rathodrahool
+- LinkedIn: https://linkedin.com/in/rathodrahool
