@@ -7,4 +7,5 @@ export { streakService } from './streak.service';
 export { settingsService } from './settings.service';
 export { badgeService } from './badge.service';
 export { globalService } from './global.service';
+export { bugService } from './bug.service';
 
