@@ -44,6 +44,25 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     },
   });
 
+  // Guest Mode Login
+  const handleGuestLogin = async () => {
+    try {
+      const guestData = {
+        email: 'guest@pomorix.space',
+        auth_provider: AuthProvider.GOOGLE,
+        auth_provider_id: 'guest-mode',
+      };
+
+      const success = await socialLogin(guestData);
+
+      if (success) {
+        onLogin();
+      }
+    } catch (err) {
+      console.error('Guest login error:', err);
+    }
+  };
+
   return (
     <div className="bg-yc-bg font-display text-slate-900 min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       <main className="relative z-10 w-full max-w-[400px] bg-white shadow-sharp-lg border border-slate-200 flex flex-col p-10">
@@ -79,6 +98,18 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
             </svg>
             <span>{loading ? 'Signing in...' : 'Continue with Google'}</span>
+          </button>
+
+          {/* Guest Mode Button */}
+          <button
+            onClick={handleGuestLogin}
+            className="flex items-center justify-center gap-3 bg-slate-50 hover:bg-slate-100 border border-slate-300 text-slate-700 py-4 transition-all duration-200 text-base font-bold shadow-sharp group w-full active:translate-y-[1px]"
+            type="button"
+            disabled={loading}
+          >
+            {/* Person Icon */}
+            <span className="material-symbols-outlined text-slate-600 group-hover:scale-110 transition-transform">person</span>
+            <span>{loading ? 'Signing in...' : 'Continue as Guest'}</span>
           </button>
         </div>
 
