@@ -3,6 +3,7 @@ import React, { useState, useEffect, createContext, useContext } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useStreak } from '../hooks';
 import { globalService } from '../services';
+import { BugReportModal } from './Common';
 
 // Focus Mode Context
 interface FocusModeContextType {
@@ -97,6 +98,7 @@ const Header: React.FC<HeaderProps> = ({ isFocusMode, toggleFocusMode }) => {
 const Layout: React.FC = () => {
   const [isFocusMode, setIsFocusMode] = useState(true); // Default: ON (minimalist)
   const [onlineCount, setOnlineCount] = useState(0);
+  const [isBugModalOpen, setIsBugModalOpen] = useState(false);
 
   const toggleFocusMode = () => {
     setIsFocusMode(prev => !prev);
@@ -131,15 +133,27 @@ const Layout: React.FC = () => {
           <Outlet />
         </main>
         <footer className="w-full border-t border-primary/20 bg-bg-page py-4 px-6 text-center">
-          <div className="flex items-center justify-center gap-2 text-text-secondary text-sm font-display">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full bg-green-500 opacity-75"></span>
-              <span className="relative inline-flex h-2 w-2 bg-green-600"></span>
-            </span>
-            <span><strong className="text-text-main">{onlineCount.toLocaleString()}</strong> people are focusing right now.</span>
+          <div className="flex items-center justify-center gap-4 text-text-secondary text-sm font-display">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full bg-green-500 opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 bg-green-600"></span>
+              </span>
+              <span><strong className="text-text-main">{onlineCount.toLocaleString()}</strong> people are focusing right now.</span>
+            </div>
+            <span className="text-text-secondary">•</span>
+            <button
+              onClick={() => setIsBugModalOpen(true)}
+              className="text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
+            >
+              Report a Bug
+            </button>
           </div>
         </footer>
       </div>
+
+      {/* Bug Report Modal */}
+      <BugReportModal isOpen={isBugModalOpen} onClose={() => setIsBugModalOpen(false)} />
     </FocusModeContext.Provider>
   );
 };
